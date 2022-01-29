@@ -1,0 +1,28 @@
+{
+  "name": "comp3200-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "start:dev": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MihaelaFlorea2000/COMP3200-backend.git"
+  },
+  "author": "mf2u19",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MihaelaFlorea2000/COMP3200-backend/issues"
+  },
+  "homepage": "https://github.com/MihaelaFlorea2000/COMP3200-backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^14.3.2",
+    "express": "^4.17.2",
+    "helmet": "^5.0.2",
+    "multer": "^1.4.4",
+    "nodemon": "^2.0.15"
+  }
+}
