@@ -4,7 +4,8 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const User = require('../../../models/User.js');
 const { PROFILE_IMAGE } = require('../../../helpers/constants');
-const { returnMsg } = require('../../../helpers/returnMsg');
+const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
+const jwt = require('jsonwebtoken');
 
 // Register a user (MongoDB)
 router.post('/register', async (req, res, next) => {
@@ -12,12 +13,12 @@ router.post('/register', async (req, res, next) => {
 
   // Check request body is ok
   if (!email || !password || !confirmPassword || !firstName || !lastName) {
-    return returnMsg(res, 400, false, "Bad Request");
+    return normalMsg(res, 400, false, "Bad Request");
   }
 
   // Check passwords match
   if (password !== confirmPassword) {
-    return returnMsg(res, 400, false, "Passwords don't match");
+    return normalMsg(res, 400, false, "Passwords don't match");
   }
 
   // Check email exists Mongodb
@@ -25,7 +26,7 @@ router.post('/register', async (req, res, next) => {
     const user = await User.findOne({email: email});
 
     if (user !== null) {
-      return returnMsg(res, 400, false, "Email already exists");
+      return normalMsg(res, 400, false, "Email already exists");
     }
     
   } catch (error) {
@@ -51,10 +52,50 @@ router.post('/register', async (req, res, next) => {
 
     try {
       await user.save();
-      return returnMsg(res, 201, true, "OK");
+      return normalMsg(res, 201, true, "OK");
     } catch (error) {
       res.status(500);
       next(error);
+    }
+  });
+});
+
+// Login a user (MongoDB)
+router.post('/login', async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return loginMsg(res, 400, false, "Bad Request", false);
+  }
+
+  // Get hash from db
+  let id = "";
+  let hash = "";
+  
+  try {
+    const user = await User.findOne({email: email});
+
+    if (user === null) {
+      return loginMsg(res, 400, false, "Invalid credentials", false);
+    }
+
+    hash = user.password;
+    id = user.id;
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+
+  // Check password
+  bcrypt.compare(password, hash, function(err, result) {
+    if (result) {
+      const token = jwt.sign(
+        { id: id }, 
+        process.env.TOKEN_SECRET
+      );
+      return loginMsg(res, 200, true, "OK", token);
+    } else {
+      return loginMsg(res, 401, false, "Invalid credentials", false);
     }
   });
 });
