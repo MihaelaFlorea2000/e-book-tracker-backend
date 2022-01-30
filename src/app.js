@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 
 // Require Middleware
 const middlewares = require('./middlewares');
-const usersRouter = require('./routes/users/users');
+const pgRouter = require('./routes/pg/pg')
+const mongoRouter = require('./routes/mongo/mongo');
 
 // Create app
 const app = express();
@@ -31,7 +32,8 @@ app.get('/', (req, res) => {
 });
 
 // Routes
-app.use('/users', usersRouter);
+app.use('/pg', pgRouter);
+app.use('/mongo', mongoRouter);
 
 // Error handling middleware
 app.use(middlewares.errorHandler);
