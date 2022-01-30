@@ -13,7 +13,7 @@ const usersRouter = require('./routes/users/users');
 const app = express();
 
 // Connect to Mongodb
-const url = process.env.DATABASE_URL;
+const url = process.env.MONGODB_URL;
 mongoose.connect(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true
