@@ -106,7 +106,14 @@ router.get('/currentUser', authenticateToken, async (req, res, next) => {
   const user = req.user;
   try {
     const userData = await User.findById(user.id);
-    return res.status(200).json(userData);
+    const currentUser = {
+      id: userData._id,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      profileImage: userData.profileImage,
+    }
+    return res.status(200).json(currentUser);
   } catch (err) {
     return res.status(500).json(err.message);
   }
