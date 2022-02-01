@@ -6,6 +6,7 @@ const { pool } = require('../../../config/postgresConfig');
 const { PROFILE_IMAGE } = require('../../../helpers/constants');
 const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
+const { authenticateToken } = require('../../../helpers/authenticate');
 
 // Register a new user
 router.post('/register', async (req, res, next) => {
@@ -97,6 +98,20 @@ router.post('/login', async (req, res, next) => {
       return loginMsg(res, 401, false, "Invalid credentials", false);
     }
   });
+});
+
+// Get information about the current user
+router.get('/currentUser', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  try {
+    const data = await pool.query(
+      'SELECT id, first_name AS "firstName", last_name AS "lastName", email, profile_image AS "profileImage" FROM users WHERE users.id = $1', 
+      [user.id]
+    );
+    return res.status(200).json(data.rows[0]);
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
 });
 
 module.exports = router;

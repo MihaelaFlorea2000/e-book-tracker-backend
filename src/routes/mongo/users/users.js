@@ -6,6 +6,7 @@ const User = require('../../../models/User.js');
 const { PROFILE_IMAGE } = require('../../../helpers/constants');
 const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
+const { authenticateToken } = require('../../../helpers/authenticate');
 
 // Register a user (MongoDB)
 router.post('/register', async (req, res, next) => {
@@ -98,6 +99,17 @@ router.post('/login', async (req, res, next) => {
       return loginMsg(res, 401, false, "Invalid credentials", false);
     }
   });
+});
+
+// Get information about the current user (MongoDB)
+router.get('/currentUser', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  try {
+    const userData = await User.findById(user.id);
+    return res.status(200).json(userData);
+  } catch (err) {
+    return res.status(500).json(err.message);
+  }
 });
 
 module.exports = router;

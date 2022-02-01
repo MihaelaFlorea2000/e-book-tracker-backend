@@ -4,7 +4,9 @@ function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
 
-  if (token == null) return res.sendStatus(401)
+  if (token == null) {
+    return res.status(403).json({status: false, message: "Unauthorised"});
+  }
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
 
