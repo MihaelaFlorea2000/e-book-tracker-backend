@@ -2,6 +2,7 @@
 require('dotenv').config();
 const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
+const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../helpers/authenticate');
 
 router.get('/', authenticateToken, async (req, res, next) => {
