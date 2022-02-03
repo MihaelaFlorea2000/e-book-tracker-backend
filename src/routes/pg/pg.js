@@ -1,8 +1,10 @@
 // /pg
 require('dotenv').config();
 const router = require('express').Router();
-const userRouter = require('./users/users');
+const usersRouter = require('./users/users');
+const booksRouter = require('./books/books');
 
-router.use('/users', userRouter);
+router.use('/books', booksRouter);
+router.use('/users', usersRouter);
 
 module.exports = router;

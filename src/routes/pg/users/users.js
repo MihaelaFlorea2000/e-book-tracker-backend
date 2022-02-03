@@ -110,7 +110,8 @@ router.get('/currentUser', authenticateToken, async (req, res, next) => {
     );
     return res.status(200).json(data.rows[0]);
   } catch (err) {
-    return res.status(500).json(err.message);
+    res.status(500);
+    next(err);
   }
 });
 
