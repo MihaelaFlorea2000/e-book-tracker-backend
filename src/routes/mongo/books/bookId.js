@@ -21,7 +21,7 @@ router.post('/edit/upload',
         await Book.findOneAndUpdate({
           _id: bookId
         }, {
-          $set: {file: file.path}
+          $set: {file: file[0].path}
         });
       }
 
@@ -29,7 +29,7 @@ router.post('/edit/upload',
         await Book.findOneAndUpdate({
           _id: bookId
         }, {
-          $set: {coverImage: coverImage.path}
+          $set: {coverImage: coverImage[0].path}
         });
       }
       return normalMsg(res, 200, true, "OK");
