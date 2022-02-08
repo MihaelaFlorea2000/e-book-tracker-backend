@@ -28,10 +28,7 @@ const bookSchema = new Schema({
     min: 0,
     max: 5
   },
-  file: {
-    type: String,
-    required: true
-  },
+  file: String,
   fileName: {
     type: String,
     required: true

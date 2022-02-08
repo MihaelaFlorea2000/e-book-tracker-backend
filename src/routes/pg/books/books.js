@@ -2,9 +2,11 @@
 require('dotenv').config();
 const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
-const { normalMsg } = require('../../../helpers/returnMsg');
-const { authenticateToken } = require('../../../helpers/authenticate');
+const { authenticateToken } = require('../../../middlewares');
 
+const bookIdRouter = require('./bookId');
+
+// Get all books
 router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
@@ -20,50 +22,35 @@ router.get('/', authenticateToken, async (req, res, next) => {
   }
 });
 
-// Get information about the current user
+// Add a new book
 router.post('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { title, authors, description, coverImage, tags, publisher, pubDate, language, rating, file, fileName, series } = req.body;
-
-  const book = {
-    title: title, 
-    authors: authors === undefined ? [] : authors, 
-    description: description, 
-    coverImage: coverImage === undefined ? COVER_IMAGE : coverImage, 
-    tags: tags === undefined ? [] : tags, 
-    publisher: publisher, 
-    pubDate: pubDate, 
-    language: language, 
-    rating: rating === undefined ? 0 : rating, 
-    file: file, 
-    fileName: fileName, 
-    series: series
-  };
+  const { title, authors, description, tags, publisher, pubDate, language, rating, fileName, series } = req.body;
 
   try {
-    await pool.query(
-      'INSERT INTO books (user_id, title, authors, description, cover_image, tags, publisher, pub_date, language, rating, file, file_name, series) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)', 
+    const data = await pool.query(
+      'INSERT INTO books (user_id, title, authors, description, tags, publisher, pub_date, language, rating, file_name, series) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', 
       [
         user.id, 
-        book.title, 
-        book.authors, 
-        book.description, 
-        book.coverImage, 
-        book.tags, 
-        book.publisher, 
-        book.pubDate, 
-        book.language, 
-        book.rating, 
-        book.file, 
-        book.fileName, 
-        book.series
+        title, 
+        authors, 
+        description,
+        tags, 
+        publisher, 
+        pubDate, 
+        language, 
+        rating,
+        fileName, 
+        series
       ]
     );
-    return normalMsg(res, 201, true, "OK");
+    return res.status(200).json(data.rows[0]);
   } catch (err) {
     res.status(500);
     next(err)
   }
 });
+
+router.use('/:bookId', bookIdRouter);
 
 module.exports = router;

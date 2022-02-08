@@ -21,6 +21,7 @@ mongoose.connect(url, {
 });
 
 // App middleware
+app.use('/uploads', express.static('uploads'));
 app.use(cors());
 app.use(helmet());
 app.use(express.json());

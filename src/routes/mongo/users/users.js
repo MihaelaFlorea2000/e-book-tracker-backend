@@ -6,7 +6,7 @@ const User = require('../../../models/User.js');
 const { PROFILE_IMAGE } = require('../../../helpers/constants');
 const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
-const { authenticateToken } = require('../../../helpers/authenticate');
+const { authenticateToken } = require('../../../middlewares');
 
 // Register a user (MongoDB)
 router.post('/register', async (req, res, next) => {

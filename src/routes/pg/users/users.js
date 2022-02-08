@@ -6,7 +6,7 @@ const { pool } = require('../../../config/postgresConfig');
 const { PROFILE_IMAGE } = require('../../../helpers/constants');
 const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
-const { authenticateToken } = require('../../../helpers/authenticate');
+const { authenticateToken } = require('../../../middlewares');
 
 // Register a new user
 router.post('/register', async (req, res, next) => {
