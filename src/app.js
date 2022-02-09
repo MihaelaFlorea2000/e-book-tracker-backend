@@ -26,7 +26,7 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN
 }));
 app.use((req, res, next) => {
-  res.header("Cross-Origin-Resource-Policy", "same-site")
+  res.header("Cross-Origin-Resource-Policy", "cross-origin")
   next()
 })
 app.use(helmet());
