@@ -5,28 +5,38 @@ const { pool } = require('../../../config/postgresConfig');
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter } = require('../../../config/multerConfig');
+const { uploadImage }  =require('../../../helpers/uploadImage');
 
 // Get information about the current user
 router.post('/edit/upload', 
   authenticateToken, 
   uploadBookMulter,
   async (req, res, next) => {
+    const user = req.user;
     const bookId = req.params.bookId;
     const { file, coverImage } = req.files;
 
     try {
       // Add paths to db
       if (file) {
+        const toUpload = file[0];
+        toUpload.originalname = 'file';
+        const fileUrl = await uploadImage(toUpload, user.id, bookId);
+
         await pool.query(
           'UPDATE books SET file = $1 WHERE id = $2;',
-          [file[0].path, bookId]
+          [fileUrl, bookId]
         )
       }
 
       if (coverImage) {
+        const toUpload = file[0]
+        toUpload.originalname = 'coverImage';
+        const coverImageUrl = await uploadImage(toUpload, user.id, bookId);
+        
         await pool.query(
           'UPDATE books SET cover_image = $1 WHERE id = $2;',
-          [coverImage[0].path, bookId]
+          [coverImageUrl, bookId]
         )
       }
       return normalMsg(res, 200, true, "OK");

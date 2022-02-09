@@ -1,24 +1,17 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const {Storage} = require('@google-cloud/storage');
 
 // Upload Book
-const uploadBookStorage =  multer.diskStorage({
-  destination: (req, file, cb) => {
-    const path = `./uploads/${req.user.id}/books/${req.params.bookId}`
-    fs.mkdirSync(path, {recursive: true})
-    return cb(null, path);
-  },
-  filename: (req, file, cb) => {
-    const extension = path.extname(file.originalname);
-    const name = `${file.fieldname}${extension}`
-    cb(null, name)
-  }
-});
-
-const uploadBookMulter = multer({storage: uploadBookStorage}).fields([
+const uploadBookStorage = new Storage();
+const uploadBookMulter = multer({
+  storage: multer.memoryStorage()
+}).fields([
   { name: 'file', maxCount: 1 },
   { name: 'coverImage', maxCount: 1 }
 ]);
 
-module.exports = { uploadBookMulter }
+const bucket = uploadBookStorage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+
+module.exports = { uploadBookMulter, bucket }
