@@ -25,6 +25,10 @@ app.use('/uploads', express.static('uploads'));
 app.use(cors({
   origin: process.env.CORS_ORIGIN
 }));
+app.use((req, res, next) => {
+  res.header("Cross-Origin-Resource-Policy", "same-site")
+  next()
+})
 app.use(helmet());
 app.use(express.json());
 
