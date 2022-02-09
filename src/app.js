@@ -23,7 +23,7 @@ mongoose.connect(url, {
 // App middleware
 app.use('/uploads', express.static('uploads'));
 app.use(cors({
-  origin: process.env.CORS_ORIGIN
+  origin: '*'
 }));
 app.use(helmet());
 app.use(express.json());
