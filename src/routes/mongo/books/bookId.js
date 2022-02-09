@@ -6,6 +6,7 @@ const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter } = require('../../../config/multerConfig');
 const Book = require('../../../models/Book.js');
 const { uploadImage }  =require('../../../helpers/uploadImage');
+const path = require('path');
 
 // Get information about the current user
 router.post('/edit/upload', 
@@ -21,7 +22,7 @@ router.post('/edit/upload',
       // Add paths to db
       if (file) {
         const toUpload = file[0];
-        toUpload.originalname = 'file';
+        toUpload.originalname = 'file.epub';
         const fileUrl = await uploadImage(toUpload, user.id, bookId);
 
         await Book.findOneAndUpdate({
@@ -32,8 +33,8 @@ router.post('/edit/upload',
       }
 
       if (coverImage) {
-        const toUpload = file[0]
-        toUpload.originalname = 'coverImage';
+        const toUpload = coverImage[0]
+        toUpload.originalname = `coverImage${path.extname(coverImage[0].originalname)}`;
         const coverImageUrl = await uploadImage(toUpload, user.id, bookId);
 
         await Book.findOneAndUpdate({
