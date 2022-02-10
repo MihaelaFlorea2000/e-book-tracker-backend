@@ -1,16 +1,30 @@
 // /mongo/books/{book_id}
 require('dotenv').config();
-const router = require('express').Router({mergeParams: true});
+const router = require('express').Router({ mergeParams: true });
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter } = require('../../../config/multerConfig');
 const Book = require('../../../models/Book.js');
-const { uploadImage }  =require('../../../helpers/uploadImage');
+const { uploadImage } = require('../../../helpers/uploadImage');
 const path = require('path');
 
+// Get information about a specific book
+router.get('/', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const data = await Book.findOne({}, { __v: 0 }).where({ id: bookId, userId: user.id })
+    res.status(200).json(data);
+  } catch {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Get information about the current user
-router.post('/edit/upload', 
-  authenticateToken, 
+router.post('/edit/upload',
+  authenticateToken,
   uploadBookMulter,
   async (req, res, next) => {
     const user = req.user;
@@ -28,7 +42,7 @@ router.post('/edit/upload',
         await Book.findOneAndUpdate({
           _id: bookId
         }, {
-          $set: {file: fileUrl}
+          $set: { file: fileUrl }
         });
       }
 
@@ -40,7 +54,7 @@ router.post('/edit/upload',
         await Book.findOneAndUpdate({
           _id: bookId
         }, {
-          $set: {coverImage: coverImageUrl}
+          $set: { coverImage: coverImageUrl }
         });
       }
       return normalMsg(res, 200, true, "OK");

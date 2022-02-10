@@ -8,6 +8,23 @@ const { uploadBookMulter } = require('../../../config/multerConfig');
 const { uploadImage }  =require('../../../helpers/uploadImage');
 const path = require('path');
 
+// Get information about one specific book
+router.get('/', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series FROM books WHERE id = $1 AND user_id = $2;',
+      [bookId, user.id]
+    )
+    res.status(200).json(data.rows[0]);
+  } catch {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Get information about the current user
 router.post('/edit/upload', 
   authenticateToken, 
