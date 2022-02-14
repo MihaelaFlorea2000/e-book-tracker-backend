@@ -19,7 +19,38 @@ router.get('/', authenticateToken, async (req, res, next) => {
       [bookId, user.id]
     )
     res.status(200).json(data.rows[0]);
-  } catch {
+  } catch (err){
+    res.status(500);
+    next(err)
+  }
+})
+
+// Delete a book
+router.delete('/', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (data.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (data.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    await pool.query(
+      'DELETE FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
     res.status(500);
     next(err)
   }
