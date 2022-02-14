@@ -56,6 +56,38 @@ router.delete('/', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Edit a book
+router.put('/edit', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+  const { title, authors, description, tags, publisher, pubDate, language, rating, series } = req.body;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (data.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (data.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    await pool.query(
+      'UPDATE books SET title = $1, authors = $2, description = $3, tags = $4, publisher = $5, pub_date = $6, language = $7, rating = $8, series = $9 WHERE id = $10;',
+      [title, authors, description, tags, publisher, pubDate, language, rating, series, bookId]
+    );
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Get information about the current user
 router.post('/edit/upload', 
   authenticateToken, 
