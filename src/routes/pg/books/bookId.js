@@ -88,6 +88,38 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Edit the book last location
+router.put('/edit/location', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+  const { location } = req.body;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (data.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (data.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    await pool.query(
+      'UPDATE books SET location = $1 WHERE id = $2;',
+      [location, bookId]
+    );
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Get information about the current user
 router.post('/edit/upload', 
   authenticateToken, 

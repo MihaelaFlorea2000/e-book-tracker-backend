@@ -33,7 +33,8 @@ const bookSchema = new Schema({
     type: String,
     required: true
   },
-  series: String
+  series: String,
+  location: String
 });
 
 const Book = mongoose.model('Book', bookSchema);

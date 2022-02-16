@@ -46,7 +46,7 @@ router.delete('/', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Delete a book
+// Edit a book
 router.put('/edit', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
   const user = req.user;
@@ -66,6 +66,34 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
       _id: bookId
     }, {
       $set: req.body
+    });
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+})
+
+router.put('/edit/location', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+  const { location } = req.body
+
+  try {
+    const book = await Book.findById(bookId);
+
+    if (book === null) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (book.userId.toString() !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    await Book.updateOne({
+      _id: bookId
+    }, {
+      $set: {location: location}
     });
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
