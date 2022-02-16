@@ -15,7 +15,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series FROM books WHERE id = $1 AND user_id = $2;',
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location FROM books WHERE id = $1 AND user_id = $2;',
       [bookId, user.id]
     )
     res.status(200).json(data.rows[0]);
