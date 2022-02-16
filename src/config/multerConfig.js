@@ -11,7 +11,8 @@ const uploadBookMulter = multer({
 ]); 
 
 // The origin for this CORS config to allow requests from
-const origin = process.env.CORS_ORIGIN;
+const localOrigin = process.env.CORS_ORIGIN_LOCAL;
+const remoteOrigin = process.env.CORS_ORIGIN_REMOTE;
 
 // The response header to share across origins
 const responseHeader = 'Content-Type';
@@ -33,14 +34,12 @@ async function configureBucketCors() {
     {
       maxAgeSeconds,
       method: [method],
-      origin: [origin],
+      origin: [localOrigin, remoteOrigin],
       responseHeader: [responseHeader],
     },
   ]);
 
-  console.log(`Bucket was updated with a CORS config
-      to allow ${method} requests from ${origin} sharing 
-      ${responseHeader} responses across origins`);
+  console.log('Bucket was updated with a CORS config');
 }
 
 module.exports = { uploadBookMulter, bucket }
