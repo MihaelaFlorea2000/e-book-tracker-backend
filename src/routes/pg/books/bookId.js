@@ -15,7 +15,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location FROM books WHERE id = $1 AND user_id = $2;',
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE id = $1 AND user_id = $2;',
       [bookId, user.id]
     )
     res.status(200).json(data.rows[0]);
@@ -111,6 +111,37 @@ router.put('/edit/location', authenticateToken, async (req, res, next) => {
     await pool.query(
       'UPDATE books SET location = $1 WHERE id = $2;',
       [location, bookId]
+    );
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Edit the book lastOpened
+router.put('/edit/opened', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (data.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (data.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    await pool.query(
+      'UPDATE books SET last_opened = current_timestamp WHERE id = $1;',
+      [bookId]
     );
 
     return normalMsg(res, 200, true, "OK");

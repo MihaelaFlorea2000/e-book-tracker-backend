@@ -12,7 +12,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series FROM books WHERE user_id = $1', 
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE user_id = $1 ORDER BY last_opened DESC', 
       [user.id]
     );
     return res.status(200).json(data.rows);
@@ -29,7 +29,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'INSERT INTO books (user_id, title, authors, description, tags, publisher, pub_date, language, rating, file_name, series) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *', 
+      `INSERT INTO books (user_id, title, authors, description, tags, publisher, pub_date, language, rating, file_name, series, last_opened) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, to_timestamp(${Date.now()} / 1000.0)) RETURNING *`, 
       [
         user.id, 
         title, 
