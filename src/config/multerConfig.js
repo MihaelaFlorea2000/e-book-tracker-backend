@@ -42,4 +42,19 @@ async function configureBucketCors() {
   console.log('Bucket was updated with a CORS config');
 }
 
-module.exports = { uploadBookMulter, bucket }
+const deleteBook = async (userId, bookId) => {
+  const folderName = `${userId}%2Fbooks%2F${bookId}`;
+
+  const files = await bucket.getFiles();
+  const folderFiles = files[0].filter(f => f.id.includes(folderName + "%2F"));
+
+  folderFiles.forEach(async file => {
+    try {
+      await file.delete();
+    } catch (err) {
+      throw err
+    }
+  }) 
+}
+
+module.exports = { uploadBookMulter, bucket, deleteBook }

@@ -4,7 +4,7 @@ const router = require('express').Router({mergeParams: true});
 const { pool } = require('../../../config/postgresConfig');
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
-const { uploadBookMulter } = require('../../../config/multerConfig');
+const { uploadBookMulter, deleteBook } = require('../../../config/multerConfig');
 const { uploadImage }  =require('../../../helpers/uploadImage');
 const path = require('path');
 
@@ -44,6 +44,10 @@ router.delete('/', authenticateToken, async (req, res, next) => {
       return res.status(401).json({ status: false, message: "Unauthorised" });
     }
 
+    // Delete from bucket
+    await deleteBook(user.id, bookId);
+
+    // Delete from db
     await pool.query(
       'DELETE FROM books WHERE id = $1',
       [bookId]
