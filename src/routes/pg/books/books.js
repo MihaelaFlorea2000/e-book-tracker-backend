@@ -2,6 +2,7 @@
 require('dotenv').config();
 const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
+const { START_LOCATION } = require('../../../helpers/constants');
 const { authenticateToken } = require('../../../middlewares');
 
 const bookIdRouter = require('./bookId');
@@ -29,7 +30,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      `INSERT INTO books (user_id, title, authors, description, tags, publisher, pub_date, language, rating, file_name, series, last_opened) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, to_timestamp(${Date.now()} / 1000.0)) RETURNING *`, 
+      `INSERT INTO books (user_id, title, authors, description, tags, publisher, pub_date, language, rating, file_name, series, location, last_opened) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, to_timestamp(${Date.now()} / 1000.0)) RETURNING *`, 
       [
         user.id, 
         title, 
@@ -41,7 +42,8 @@ router.post('/', authenticateToken, async (req, res, next) => {
         language, 
         rating,
         fileName, 
-        series
+        series,
+        START_LOCATION
       ]
     );
     return res.status(200).json(data.rows[0]);
