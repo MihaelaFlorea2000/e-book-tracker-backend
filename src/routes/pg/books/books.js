@@ -7,7 +7,7 @@ const { authenticateToken } = require('../../../middlewares');
 
 const bookIdRouter = require('./bookId');
 
-// Get all books
+// Get all books for current user
 router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
 

@@ -60,6 +60,166 @@ router.delete('/', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Get information about one specific book
+router.get('/reads', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, start_date AS "startDate", end_date AS "endDate", rating, notes FROM reads WHERE book_id = $1 AND user_id = $2;',
+      [bookId, user.id]
+    )
+    res.status(200).json(data.rows);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+ 
+// Book was opened
+router.post('/opened', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+
+  try {
+    const book = await pool.query(
+      'SELECT id, user_id AS "userId", current_read AS "currentRead" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (book.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (book.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    let currentRead = book.rows[0].currentRead
+
+    // Check book has not been currently read
+    if (currentRead === null) {
+      // Create new read
+      const newRead = await pool.query(
+        'INSERT INTO reads (book_id, user_id, start_date) VALUES($1, $2, current_timestamp) RETURNING id',
+        [bookId, user.id]
+      );
+
+      // Update book currentRead
+      await pool.query(
+        'UPDATE books SET current_read = $1 WHERE id = $2;',
+        [newRead.rows[0].id, bookId]
+      );
+
+      currentRead = newRead.rows[0].id;
+    }
+
+    // Update book lastOpened
+    await pool.query(
+      'UPDATE books SET last_opened = current_timestamp WHERE id = $1;',
+      [bookId]
+    );
+
+    // Create new session
+    await pool.query(
+      'INSERT INTO sessions (book_id, read_id, user_id, start_date) VALUES ($1, $2, $3, current_timestamp)',
+      [bookId, currentRead, user.id]
+    );
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Book was closed
+router.post('/closed', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+  const { location } = req.body;
+
+  try {
+    const book = await pool.query(
+      'SELECT id, user_id AS "userId", current_read AS "currentRead" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (book.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (book.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    // Update session endDate
+    await pool.query(
+      'UPDATE sessions SET end_date = current_timestamp WHERE read_id = $1',
+      [book.rows[0].currentRead]
+    )
+
+    // Update session time
+    await pool.query(
+      'UPDATE sessions SET time = AGE(end_date, start_date) WHERE read_id = $1',
+      [book.rows[0].currentRead]
+    )
+
+    // Update book location
+    await pool.query(
+      'UPDATE books SET location = $1 WHERE id = $2;',
+      [location, bookId]
+    );
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Book was closed
+router.post('/finished', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const user = req.user;
+  const { rating, notes } = req.body;
+
+  try {
+    const book = await pool.query(
+      'SELECT id, user_id AS "userId", current_read AS "currentRead" FROM books WHERE id = $1',
+      [bookId]
+    )
+
+    if (book.rows.length === 0) {
+      return res.status(404).json({ status: false, message: "Not Found" });
+    }
+
+    if (book.rows[0].userId !== user.id) {
+      return res.status(401).json({ status: false, message: "Unauthorised" });
+    }
+
+    const currentRead = book.rows[0].currentRead
+
+    // Update book
+    await pool.query(
+      'UPDATE books SET current_read = null, read = true WHERE id = $1',
+      [bookId]
+    )
+
+    // Update read
+    await pool.query(
+      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2 WHERE id = $3',
+      [rating, notes, currentRead]
+    )
+
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Edit a book
 router.put('/edit', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
@@ -124,7 +284,7 @@ router.put('/edit/location', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Edit the book lastOpened
+// Book was opened
 router.put('/edit/opened', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
   const user = req.user;
