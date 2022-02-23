@@ -6,6 +6,7 @@ const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter, deleteBook } = require('../../../config/multerConfig');
 const { uploadImage }  =require('../../../helpers/uploadImage');
+const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
 
 // Get information about one specific book
@@ -197,8 +198,8 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
 
     // Book is not currently being read anymore
     await pool.query(
-      'UPDATE books SET current_read = null, read = true WHERE id = $1',
-      [bookId]
+      'UPDATE books SET current_read = null, read = true, location = $1 WHERE id = $2',
+      [START_LOCATION, bookId]
     )
 
     // Calculate total read time and number of sessions
