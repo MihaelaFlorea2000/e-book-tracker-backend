@@ -123,8 +123,8 @@ router.post('/opened', authenticateToken, async (req, res, next) => {
 
     // Create new session
     await pool.query(
-      'INSERT INTO sessions (book_id, read_id, user_id, start_date) VALUES ($1, $2, $3, current_timestamp)',
-      [bookId, currentRead, user.id]
+      'INSERT INTO sessions (read_id, start_date) VALUES ($1, current_timestamp)',
+      [currentRead]
     );
 
     return normalMsg(res, 200, true, "OK");
@@ -154,15 +154,9 @@ router.post('/closed', authenticateToken, async (req, res, next) => {
       return res.status(401).json({ status: false, message: "Unauthorised" });
     }
 
-    // Update session endDate
-    await pool.query(
-      'UPDATE sessions SET end_date = current_timestamp WHERE read_id = $1',
-      [book.rows[0].currentRead]
-    )
-
     // Update session time
     await pool.query(
-      'UPDATE sessions SET time = AGE(end_date, start_date) WHERE read_id = $1',
+      'UPDATE sessions SET time = AGE(current_timestamp, start_date) WHERE read_id = $1',
       [book.rows[0].currentRead]
     )
 
@@ -201,16 +195,28 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
 
     const currentRead = book.rows[0].currentRead
 
-    // Update book
+    // Book is not currently being read anymore
     await pool.query(
       'UPDATE books SET current_read = null, read = true WHERE id = $1',
       [bookId]
     )
 
+    // Calculate total read time and number of sessions
+    const sessions = await pool.query(
+      'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
+      [currentRead]
+    )
+
     // Update read
     await pool.query(
-      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2 WHERE id = $3',
-      [rating, notes, currentRead]
+      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2, time = $3, sessions = $4 WHERE id = $5',
+      [rating, notes, sessions.rows[0].totalTime, sessions.rows[0].sessionsNum, currentRead]
+    )
+
+    // Delete sessions
+    await pool.query(
+      'DELETE FROM sessions WHERE read_id = $1',
+      [currentRead]
     )
 
     return normalMsg(res, 200, true, "OK");
@@ -243,69 +249,6 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
     await pool.query(
       'UPDATE books SET title = $1, authors = $2, description = $3, tags = $4, publisher = $5, pub_date = $6, language = $7, rating = $8, series = $9 WHERE id = $10;',
       [title, authors, description, tags, publisher, pubDate, language, rating, series, bookId]
-    );
-
-    return normalMsg(res, 200, true, "OK");
-  } catch (err) {
-    res.status(500);
-    next(err)
-  }
-})
-
-// Edit the book last location
-router.put('/edit/location', authenticateToken, async (req, res, next) => {
-  const bookId = req.params.bookId;
-  const user = req.user;
-  const { location } = req.body;
-
-  try {
-    const data = await pool.query(
-      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
-      [bookId]
-    )
-
-    if (data.rows.length === 0) {
-      return res.status(404).json({ status: false, message: "Not Found" });
-    }
-
-    if (data.rows[0].userId !== user.id) {
-      return res.status(401).json({ status: false, message: "Unauthorised" });
-    }
-
-    await pool.query(
-      'UPDATE books SET location = $1 WHERE id = $2;',
-      [location, bookId]
-    );
-
-    return normalMsg(res, 200, true, "OK");
-  } catch (err) {
-    res.status(500);
-    next(err)
-  }
-})
-
-// Book was opened
-router.put('/edit/opened', authenticateToken, async (req, res, next) => {
-  const bookId = req.params.bookId;
-  const user = req.user;
-
-  try {
-    const data = await pool.query(
-      'SELECT id, user_id AS "userId" FROM books WHERE id = $1',
-      [bookId]
-    )
-
-    if (data.rows.length === 0) {
-      return res.status(404).json({ status: false, message: "Not Found" });
-    }
-
-    if (data.rows[0].userId !== user.id) {
-      return res.status(401).json({ status: false, message: "Unauthorised" });
-    }
-
-    await pool.query(
-      'UPDATE books SET last_opened = current_timestamp WHERE id = $1;',
-      [bookId]
     );
 
     return normalMsg(res, 200, true, "OK");
