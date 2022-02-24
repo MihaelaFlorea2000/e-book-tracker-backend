@@ -9,6 +9,8 @@ const { uploadImage }  =require('../../../helpers/uploadImage');
 const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
 
+const readsRouter = require('./reads/reads');
+
 // Get information about one specific book
 router.get('/', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
@@ -61,22 +63,7 @@ router.delete('/', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Get information about one specific book
-router.get('/reads', authenticateToken, async (req, res, next) => {
-  const bookId = req.params.bookId;
-  const user = req.user;
-
-  try {
-    const data = await pool.query(
-      'SELECT id, start_date AS "startDate", end_date AS "endDate", rating, notes, time, sessions FROM reads WHERE book_id = $1 AND user_id = $2;',
-      [bookId, user.id]
-    )
-    res.status(200).json(data.rows);
-  } catch (err) {
-    res.status(500);
-    next(err)
-  }
-})
+router.use('/reads', readsRouter)
  
 // Book was opened
 router.post('/opened', authenticateToken, async (req, res, next) => {
