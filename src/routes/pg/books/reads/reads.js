@@ -27,11 +27,13 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
     console.log(currentReadId, currentReadIndex );
 
-    if (currentReadId > 0 && currentReadIndex > 0) {
+    if (currentReadId >= 0 && currentReadIndex >= 0) {
       const sessions = await pool.query(
         'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
         [currentReadId]
       )
+
+      console.log(sessions.rows);
 
       data.rows[currentReadIndex].sessions = parseInt(sessions.rows[0].sessionsNum);
       data.rows[currentReadIndex].time = sessions.rows[0].totalTime;
