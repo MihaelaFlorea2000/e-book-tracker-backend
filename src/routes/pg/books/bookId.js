@@ -86,13 +86,15 @@ router.post('/opened', authenticateToken, async (req, res, next) => {
 
     let currentRead = book.rows[0].currentRead
 
-    // Check book has not been currently read
+    // Check book is not currently being read
     if (currentRead === null) {
       // Create new read
       const newRead = await pool.query(
         'INSERT INTO reads (book_id, user_id, start_date) VALUES($1, $2, current_timestamp) RETURNING id',
         [bookId, user.id]
       );
+
+      console.log(newRead.rows[0].id);
 
       // Update book currentRead
       await pool.query(
