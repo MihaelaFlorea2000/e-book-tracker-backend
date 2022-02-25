@@ -144,9 +144,9 @@ router.post('/closed', authenticateToken, async (req, res, next) => {
       return res.status(401).json({ status: false, message: "Unauthorised" });
     }
 
-    // Update session time
+    // Update current session time
     await pool.query(
-      'UPDATE sessions SET time = AGE(current_timestamp, start_date) WHERE read_id = $1',
+      'UPDATE sessions SET time = AGE(current_timestamp, start_date) WHERE read_id = $1 AND time IS NULL',
       [book.rows[0].currentRead]
     )
 

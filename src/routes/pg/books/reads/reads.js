@@ -4,6 +4,8 @@ const router = require('express').Router({ mergeParams: true });
 const { pool } = require('../../../../config/postgresConfig');
 const { authenticateToken } = require('../../../../middlewares');
 
+const readIdRouter = require('./readId');
+
 // Get the reads of a specific book
 router.get('/', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
@@ -25,15 +27,11 @@ router.get('/', authenticateToken, async (req, res, next) => {
       }
     })
 
-    console.log(currentReadId, currentReadIndex );
-
     if (currentReadId >= 0 && currentReadIndex >= 0) {
       const sessions = await pool.query(
         'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
         [currentReadId]
       )
-
-      console.log(sessions.rows);
 
       data.rows[currentReadIndex].sessions = parseInt(sessions.rows[0].sessionsNum);
       data.rows[currentReadIndex].time = sessions.rows[0].totalTime;
@@ -45,5 +43,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
     next(err)
   }
 })
+
+router.use('/:readId', readIdRouter)
 
 module.exports = router;
