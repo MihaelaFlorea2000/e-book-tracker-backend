@@ -9,8 +9,6 @@ const { uploadImage }  =require('../../../helpers/uploadImage');
 const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
 
-const readsRouter = require('./reads/reads');
-
 // Get information about one specific book
 router.get('/', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
@@ -62,8 +60,6 @@ router.delete('/', authenticateToken, async (req, res, next) => {
     next(err)
   }
 })
-
-router.use('/reads', readsRouter)
  
 // Book was opened
 router.post('/opened', authenticateToken, async (req, res, next) => {

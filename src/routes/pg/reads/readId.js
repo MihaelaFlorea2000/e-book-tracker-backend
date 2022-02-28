@@ -1,9 +1,10 @@
-// /pg/books/{book_id}/reads/{read_id}
+// /pg/reads/{book_id}/{read_id}
 require('dotenv').config();
 const router = require('express').Router({ mergeParams: true });
-const { pool } = require('../../../../config/postgresConfig');
-const { normalMsg } = require('../../../../helpers/returnMsg');
-const { authenticateToken } = require('../../../../middlewares');
+const { pool } = require('../../../config/postgresConfig');
+const { normalMsg } = require('../../../helpers/returnMsg');
+const { authenticateToken } = require('../../../middlewares');
+const { getTimestamp, getInterval } = require('../../../helpers/prepareRead');
 
 // Delete one specific read
 router.delete('/', authenticateToken, async (req, res, next) => {
@@ -50,6 +51,31 @@ router.delete('/', authenticateToken, async (req, res, next) => {
       )
     }
     
+    return normalMsg(res, 200, true, "OK");
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Edit a read
+router.put('/', authenticateToken, async (req, res, next) => {
+  const bookId = req.params.bookId;
+  const readId = req.params.readId;
+  const { startDate, endDate, time, sessions, rating, notes } = req.body;
+
+  // Format time and dates properly
+  const intervalString = getInterval(time);
+  const startTimestamp = getTimestamp(startDate);
+  const endTimestamp = getTimestamp(endDate);
+
+  try {
+
+    await pool.query(
+      `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', time = INTERVAL \'${intervalString}\', sessions = $1, rating = $2, notes = $3 WHERE id = $4 AND book_id = $5;`,
+      [sessions, rating, notes, readId, bookId]
+    );
+
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
     res.status(500);

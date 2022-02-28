@@ -1,8 +1,9 @@
-// /pg/books/{book_id}/reads
+// /pg/reads/{book_id}
 require('dotenv').config();
 const router = require('express').Router({ mergeParams: true });
-const { pool } = require('../../../../config/postgresConfig');
-const { authenticateToken } = require('../../../../middlewares');
+const { pool } = require('../../../config/postgresConfig');
+const { authenticateToken } = require('../../../middlewares');
+const { getTimestamp, getInterval } = require('../../../helpers/prepareRead');
 
 const readIdRouter = require('./readId');
 
@@ -38,6 +39,35 @@ router.get('/', authenticateToken, async (req, res, next) => {
     }
 
     res.status(200).json(data.rows);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Add reads to a book
+router.post('/', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  const bookId = req.params.bookId;
+  const { startDate, endDate, time, sessions, rating, notes } = req.body;
+
+  // Format time and dates properly
+  const intervalString = getInterval(time);
+  const startTimestamp = getTimestamp(startDate);
+  const endTimestamp = getTimestamp(endDate);
+
+  try {
+    const data = await pool.query(
+      `INSERT INTO reads (book_id, user_id, start_date, end_date, time, sessions, rating, notes) VALUES ($1, $2, TIMESTAMP \'${startTimestamp}\', TIMESTAMP \'${endTimestamp}\', INTERVAL \'${intervalString}\', $3, $4, $5) RETURNING *`,
+      [
+        bookId,
+        user.id,
+        sessions,
+        rating,
+        notes
+      ]
+    );
+    return res.status(200).json(data.rows[0]);
   } catch (err) {
     res.status(500);
     next(err)
