@@ -8,13 +8,6 @@ const { authenticateToken } = require('../../../middlewares');
 router.get('/numbers', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
-  // Books read - 
-  // Authors read - 
-  // Books currently reading - 
-  // Longest session -
-  // Avg time/session - 
-  // Best day (time) - 
-
   try {
     const booksRead = await pool.query(
       'SELECT COUNT(id) AS count FROM books WHERE user_id = $1 AND read = true',
@@ -53,8 +46,8 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
     )
 
     const numbers = {
-      booksRead: booksRead.rows[0].count,
-      booksCurrRead: booksCurrRead.rows[0].count,
+      booksRead: parseInt(booksRead.rows[0].count),
+      booksCurrRead: parseInt(booksCurrRead.rows[0].count),
       authorsReadCount: authorsReadCount,
       longestSession: longestSession.rows[0].max,
       avgTimePerSession: avgTimePerSession.rows[0].avg,
@@ -67,5 +60,32 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
     next(err)
   }
 })
+
+// Get the percentage of books read
+router.get('/percentage', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+    const booksRead = await pool.query(
+      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1 AND read = true',
+      [user.id]
+    )
+
+    const totalBooks = await pool.query(
+      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1',
+      [user.id]
+    )
+
+    const percentage = {
+      value: booksRead.rows[0].count / totalBooks.rows[0].count
+    }
+
+    res.status(200).json(percentage);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 
 module.exports = router;
