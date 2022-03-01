@@ -85,7 +85,7 @@ router.put('/', authenticateToken, async (req, res, next) => {
 })
 
 // Edit a read to mark as finished
-router.post('/finished', authenticateToken, async (req, res, next) => {
+router.post('/finished', authenticateToken, async (req, res, next) => {1
   const user = req.user;
   const bookId = req.params.bookId;
   const readId = req.params.readId;
@@ -125,10 +125,10 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
     );
 
     // Delete sessions
-    await pool.query(
-      'DELETE FROM sessions WHERE read_id = $1',
-      [currentRead]
-    )
+    // await pool.query(
+    //   'DELETE FROM sessions WHERE read_id = $1',
+    //   [currentRead]
+    // )
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {

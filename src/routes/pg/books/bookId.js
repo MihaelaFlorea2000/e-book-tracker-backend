@@ -159,7 +159,7 @@ router.post('/closed', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Book was closed
+// Book was finished
 router.post('/finished', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
   const user = req.user;
@@ -200,10 +200,10 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
     )
 
     // Delete sessions
-    await pool.query(
-      'DELETE FROM sessions WHERE read_id = $1',
-      [currentRead]
-    )
+    // await pool.query(
+    //   'DELETE FROM sessions WHERE read_id = $1',
+    //   [currentRead]
+    // )
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
