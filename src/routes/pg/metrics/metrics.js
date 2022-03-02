@@ -136,6 +136,13 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
     
     // Completed Goals
     const doneGoals = {
+      yearly: parseInt(yearlyBooks.rows[0].count),
+      monthly: parseInt(monthlyBooks.rows[0].count),
+      dailyHours: hoursPerDay,
+      dailyMinutes: minutesPerDay
+    }
+
+    const percentageGoals = {
       yearly: yearlyPercent,
       monthly: monthlyPercent,
       daily: doneDaily / setDaily
@@ -144,7 +151,8 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
     // All goals
     const goals = {
       set: setGoals.rows[0],
-      done: doneGoals
+      done: doneGoals,
+      percentage: percentageGoals
     }
 
     res.status(200).json(goals);
