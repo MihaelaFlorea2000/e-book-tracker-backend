@@ -136,9 +136,9 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
     
     // Completed Goals
     const doneGoals = {
-      yearly: round(yearlyPercent),
-      monthly: round(monthlyPercent),
-      daily: round(doneDaily / setDaily)
+      yearly: yearlyPercent,
+      monthly: monthlyPercent,
+      daily: doneDaily / setDaily
     }
 
     // All goals
