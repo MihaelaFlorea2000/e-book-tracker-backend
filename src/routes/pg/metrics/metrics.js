@@ -3,6 +3,7 @@ require('dotenv').config();
 const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
 const { authenticateToken } = require('../../../middlewares');
+const { round } = require('../../../helpers/round');
 
 // Get the numbers
 router.get('/numbers', authenticateToken, async (req, res, next) => {
@@ -77,7 +78,7 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
     )
 
     const percentage = {
-      value: booksRead.rows[0].count / totalBooks.rows[0].count
+      value: round(booksRead.rows[0].count / totalBooks.rows[0].count)
     }
 
     res.status(200).json(percentage);
@@ -135,9 +136,9 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
     
     // Completed Goals
     const doneGoals = {
-      yearly: yearlyPercent,
-      monthly: monthlyPercent,
-      daily: doneDaily / setDaily
+      yearly: round(yearlyPercent),
+      monthly: round(monthlyPercent),
+      daily: round(doneDaily / setDaily)
     }
 
     // All goals
