@@ -47,13 +47,15 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
+    const bestDayValue = bestDay.rows[0] ? bestDay.rows[0].day : '';
+
     const numbers = {
       booksRead: parseInt(booksRead.rows[0].count),
       booksCurrRead: parseInt(booksCurrRead.rows[0].count),
       authorsReadCount: authorsReadCount,
       longestSession: longestSession.rows[0].max,
       avgTimePerSession: avgTimePerSession.rows[0].avg,
-      bestDay: bestDay.rows[0].day
+      bestDay: bestDayValue
     }
 
     res.status(200).json(numbers);
