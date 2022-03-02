@@ -4,6 +4,7 @@ const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
 const { authenticateToken } = require('../../../middlewares');
 const { round } = require('../../../helpers/round');
+const { getDaysInMonth, formatDate } = require('../../../helpers/formatDates');
 
 // Get the numbers
 router.get('/numbers', authenticateToken, async (req, res, next) => {
@@ -174,7 +175,24 @@ router.get('/weekly', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    res.status(200).json(pastWeek.rows);
+    // Fill blank days with 0
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thr', 'Fri', 'Sat', 'Sun'];
+    const weekMap = new Map();
+
+    weekDays.forEach((day) => {
+      weekMap.set(day, 0);
+    })
+
+    pastWeek.rows.forEach((row) => {
+      weekMap.set(row.label, row.totalTime)
+    })
+
+    const weekly = {
+      labels: Array.from(weekMap.keys()),
+      dataValues: Array.from(weekMap.values())
+    }
+
+    res.status(200).json(weekly);
   } catch (err) {
     res.status(500);
     next(err)
@@ -193,7 +211,24 @@ router.get('/monthly', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    res.status(200).json(pastMonth.rows);
+    // Fill blank days with 0
+    const monthDays = getDaysInMonth();
+    const monthMap = new Map();
+
+    monthDays.forEach((day) => {
+      monthMap.set(day, 0);
+    })
+
+    pastMonth.rows.forEach((row) => {
+      monthMap.set(formatDate(row.label), row.totalTime)
+    })
+
+    const monthly = {
+      labels: Array.from(monthMap.keys()),
+      dataValues: Array.from(monthMap.values())
+    }
+
+    res.status(200).json(monthly);
   } catch (err) {
     res.status(500);
     next(err)
@@ -212,7 +247,24 @@ router.get('/yearly', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    res.status(200).json(pastYear.rows);
+    // Fill blank months with 0
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const yearMap = new Map();
+
+    monthNames.forEach((day) => {
+      yearMap.set(day, 0);
+    })
+
+    pastYear.rows.forEach((row) => {
+      yearMap.set(row.label, row.totalTime)
+    })
+
+    const yearly = {
+      labels: Array.from(yearMap.keys()),
+      dataValues: Array.from(yearMap.values())
+    }
+
+    res.status(200).json(yearly);
   } catch (err) {
     res.status(500);
     next(err)
