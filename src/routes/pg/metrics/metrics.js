@@ -122,8 +122,8 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
     )
 
     // Minutes and hours read per day
-    const hoursPerDay = dailyTime.rows[0].hours ? dailyTime.rows[0].hours : 0;
-    const minutesPerDay = dailyTime.rows[0].minutes ? dailyTime.rows[0].minutes : 0;
+    const hoursPerDay = dailyTime.rows[0].count.hours ? dailyTime.count.rows[0].hours : 0;
+    const minutesPerDay = dailyTime.rows[0].count.minutes ? dailyTime.count.rows[0].minutes : 0;
 
     // Total user daily goal in minutes
     const setDaily = setGoals.rows[0].dailyHours * 60 + setGoals.rows[0].dailyMinutes;
