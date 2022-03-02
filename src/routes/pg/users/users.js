@@ -115,7 +115,7 @@ router.get('/currentUser', authenticateToken, async (req, res, next) => {
   }
 });
 
-// Get information about the current user
+// Get the goals set by the current user
 router.post('/goals', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const { yearly, monthly, dailyHours, dailyMinutes } = req.body;

@@ -88,7 +88,7 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Get the percentage of books read
+// Get the done goals
 router.get('/goals', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
@@ -162,5 +162,61 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Get the weekly reading time
+router.get('/weekly', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Get user goals
+    const pastWeek = await pool.query(
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'Dy') AS \"weekDay\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '7' day GROUP BY \"weekDay\" ORDER BY \"weekDay\" ASC;",
+      [user.id]
+    )
+
+    res.status(200).json(pastWeek.rows);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Get the monthly reading time
+router.get('/monthly', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per year
+    const pastMonth = await pool.query(
+      "SELECT DATE(sessions.start_date)::DATE AS \"dateField\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' month GROUP BY \"dateField\" ORDER BY \"dateField\" ASC;",
+      [user.id]
+    )
+
+    res.status(200).json(pastMonth.rows);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Get the yearly reading time
+router.get('/yearly', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per month
+    const pastYear = await pool.query(
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'Mon') AS \"monthField\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' year GROUP BY \"monthField\" ORDER BY \"monthField\" ASC;",
+      [user.id]
+    )
+
+    res.status(200).json(pastYear.rows);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
 
 module.exports = router;
