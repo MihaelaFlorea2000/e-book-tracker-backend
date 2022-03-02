@@ -10,12 +10,12 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
 
   try {
     const booksRead = await pool.query(
-      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1 AND read = true',
+      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND read = true',
       [user.id]
     )
 
     const booksCurrRead = await pool.query(
-      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1 AND current_read IS NOT NULL',
+      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND current_read IS NOT NULL',
       [user.id]
     )
 
@@ -67,12 +67,12 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
 
   try {
     const booksRead = await pool.query(
-      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1 AND read = true',
+      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND read = true',
       [user.id]
     )
 
     const totalBooks = await pool.query(
-      'SELECT COUNT(id) AS count FROM books WHERE user_id = $1',
+      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1',
       [user.id]
     )
 
@@ -81,6 +81,72 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
     }
 
     res.status(200).json(percentage);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Get the percentage of books read
+router.get('/goals', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Get user goals
+    const setGoals = await pool.query(
+      'SELECT yearly, monthly, daily_hours AS "dailyHours", daily_minutes AS "dailyMinutes" FROM users WHERE id = $1',
+      [user.id]
+    )
+
+    // Books read per year
+    const yearlyBooks = await pool.query(
+      'SELECT COUNT(DISTINCT books.id) AS count FROM books INNER JOIN reads ON books.id = reads.book_id WHERE books.user_id = $1 AND reads.end_date IS NOT NULL AND books.read = true AND(EXTRACT(YEAR FROM reads.end_date)) = EXTRACT(YEAR FROM current_timestamp);',
+      [user.id]
+    )
+
+    // Books read per month
+    const monthlyBooks = await pool.query(
+      'SELECT COUNT(DISTINCT books.id) AS count FROM books INNER JOIN reads ON books.id = reads.book_id WHERE books.user_id = $1 AND reads.end_date IS NOT NULL AND books.read = true AND(EXTRACT(YEAR FROM reads.end_date)) = EXTRACT(YEAR FROM current_timestamp)AND(EXTRACT(MONTH FROM reads.end_date)) = EXTRACT(MONTH FROM current_timestamp);',
+      [user.id]
+    )
+
+    // Time read per day
+    const dailyTime = await pool.query(
+      'SELECT SUM(sessions.time) AS count FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND DATE(sessions.start_date) = CURRENT_DATE;',
+      [user.id]
+    )
+
+    // Minutes and hours read per day
+    const hoursPerDay = dailyTime.rows[0].hours ? dailyTime.rows[0].hours : 0;
+    const minutesPerDay = dailyTime.rows[0].minutes ? dailyTime.rows[0].minutes : 0;
+
+    // Total user daily goal in minutes
+    const setDaily = setGoals.rows[0].dailyHours * 60 + setGoals.rows[0].dailyMinutes;
+
+    // Total done daily goal in minutes
+    const doneDaily = hoursPerDay * 60 + minutesPerDay;
+
+    // Percentage of yearly goal
+    const yearlyPercent = parseInt(yearlyBooks.rows[0].count) / setGoals.rows[0].yearly;
+
+    // Percentage of monthly goal
+    const monthlyPercent = parseInt(monthlyBooks.rows[0].count) / setGoals.rows[0].monthly;
+    
+    // Completed Goals
+    const doneGoals = {
+      yearly: yearlyPercent,
+      monthly: monthlyPercent,
+      daily: doneDaily / setDaily
+    }
+
+    // All goals
+    const goals = {
+      set: setGoals.rows[0],
+      done: doneGoals
+    }
+
+    res.status(200).json(goals);
   } catch (err) {
     res.status(500);
     next(err)

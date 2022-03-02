@@ -115,4 +115,21 @@ router.get('/currentUser', authenticateToken, async (req, res, next) => {
   }
 });
 
+// Get information about the current user
+router.post('/goals', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  const { yearly, monthly, dailyHours, dailyMinutes } = req.body;
+
+  try {
+    await pool.query(
+      'UPDATE users SET yearly = $1, monthly = $2, daily_hours = $3, daily_minutes = $4 WHERE id = $5',
+      [yearly, monthly, dailyHours, dailyMinutes, user.id]
+    );
+    return normalMsg(res, 200, true, 'OK');
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
 module.exports = router;
