@@ -173,7 +173,7 @@ router.get('/weekly', authenticateToken, async (req, res, next) => {
 
     // Get user goals
     const pastWeek = await pool.query(
-      "SELECT TO_CHAR(DATE(sessions.start_date), 'Dy') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '7' day GROUP BY \"label\" ORDER BY \"label\" ASC;",
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'Dy') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '7' day GROUP BY \"label\" ORDER BY \"label\" ASC;",
       [user.id]
     )
 
@@ -209,7 +209,7 @@ router.get('/monthly', authenticateToken, async (req, res, next) => {
 
     // Books read per year
     const pastMonth = await pool.query(
-      "SELECT DATE(sessions.start_date)::DATE AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' month GROUP BY \"label\" ORDER BY \"label\" ASC;",
+      "SELECT DATE(sessions.start_date)::DATE AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' month GROUP BY \"label\" ORDER BY \"label\" ASC;",
       [user.id]
     )
 
@@ -245,7 +245,7 @@ router.get('/yearly', authenticateToken, async (req, res, next) => {
 
     // Books read per month
     const pastYear = await pool.query(
-      "SELECT TO_CHAR(DATE(sessions.start_date), 'Mon') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' year GROUP BY \"label\" ORDER BY \"label\" ASC;",
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'Mon') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '1' year GROUP BY \"label\" ORDER BY \"label\" ASC;",
       [user.id]
     )
 
