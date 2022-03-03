@@ -15,11 +15,25 @@ router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
   try {
-    const data = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", tags, publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE id = $1 AND user_id = $2;',
+    const bookData = await pool.query(
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE id = $1 AND user_id = $2;',
       [bookId, user.id]
     )
-    res.status(200).json(data.rows[0]);
+
+    // Add tags
+    const data = bookData.rows[0];
+    data.tags = [];
+
+    const tags = await pool.query(
+      'SELECT name FROM tags WHERE book_id = $1',
+      [bookId]
+    );
+
+    tags.rows.forEach(tag => {
+      data.tags.push(tag.name);
+    });
+
+    res.status(200).json(data);
   } catch (err){
     res.status(500);
     next(err)
@@ -233,9 +247,26 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
     }
 
     await pool.query(
-      'UPDATE books SET title = $1, authors = $2, description = $3, tags = $4, publisher = $5, pub_date = $6, language = $7, rating = $8, series = $9 WHERE id = $10;',
-      [title, authors, description, tags, publisher, pubDate, language, rating, series, bookId]
+      'UPDATE books SET title = $1, authors = $2, description = $3, publisher = $4, pub_date = $5, language = $6, rating = $7, series = $8 WHERE id = $9;',
+      [title, authors, description, publisher, pubDate, language, rating, series, bookId]
     );
+
+    // Update tags
+    await pool.query(
+      'DELETE FROM tags WHERE book_id = $1',
+      [bookId]
+    );
+
+    // Insert tags
+    for (const tag of tags) {
+      await pool.query(
+        `INSERT INTO tags (book_id, name) VALUES ($1, $2)`,
+        [
+          bookId,
+          tag
+        ]
+      );
+    }
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
