@@ -4,7 +4,7 @@ const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
 const { authenticateToken } = require('../../../middlewares');
 const { round } = require('../../../helpers/round');
-const { getDaysInMonth, formatDate } = require('../../../helpers/formatDates');
+const { getDaysInMonth, formatDate, getYears } = require('../../../helpers/formatDates');
 
 // Get the numbers
 router.get('/numbers', authenticateToken, async (req, res, next) => {
@@ -274,5 +274,42 @@ router.get('/yearly', authenticateToken, async (req, res, next) => {
     next(err)
   }
 })
+
+// Get the total reading time
+router.get('/total', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per month
+    const total = await pool.query(
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'YYYY') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL GROUP BY \"label\" ORDER BY \"label\" ASC;",
+      [user.id]
+    )
+
+    // Fill blank months with 0
+    const years = getYears(total.rows[0].label);
+    const yearsMap = new Map();
+
+    years.forEach((day) => {
+      yearsMap.set(day, 0);
+    })
+
+    total.rows.forEach((row) => {
+      yearsMap.set(row.label, row.totalTime)
+    })
+
+    const totalReading = {
+      labels: Array.from(yearsMap.keys()),
+      dataValues: Array.from(yearsMap.values())
+    }
+
+    res.status(200).json(totalReading);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 
 module.exports = router;

@@ -33,5 +33,20 @@ const getDaysInMonth = () => {
   return daysInMonth;
 }
 
+// Return array of the past 30 days
+const getYears = (startYear) => {
+  const years = [];
 
-module.exports = { getDaysInMonth, formatDate }
+  const endYear = new Date().getFullYear();
+
+  let currentYear = startYear;
+  while (currentYear <= endYear) {
+    years.push(currentYear);
+    currentYear++;
+  }
+
+  return years;
+}
+
+
+module.exports = { getDaysInMonth, formatDate, getYears }
