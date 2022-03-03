@@ -71,16 +71,18 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
 
   try {
     const booksRead = await pool.query(
-      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND read = true',
+      'SELECT COUNT(DISTINCT id)::INTEGER AS count FROM books WHERE user_id = $1 AND read = true',
       [user.id]
     )
 
     const totalBooks = await pool.query(
-      'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1',
+      'SELECT COUNT(DISTINCT id)::INTEGER AS count FROM books WHERE user_id = $1',
       [user.id]
     )
 
     const percentage = {
+      booksRead: booksRead.rows[0].count,
+      totalBooks: totalBooks.rows[0].count,
       value: round(booksRead.rows[0].count / totalBooks.rows[0].count)
     }
 
