@@ -41,7 +41,7 @@ const getYears = (startYear) => {
 
   let currentYear = startYear;
   while (currentYear <= endYear) {
-    years.push(currentYear);
+    years.push(currentYear.toString());
     currentYear++;
   }
 
