@@ -311,5 +311,66 @@ router.get('/total', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Get the top tags by reading time
+router.get('/tags/read', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per month
+    const topTags = await pool.query(
+      "SELECT tags.name, EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" from tags INNER JOIN books ON tags.book_id = books.id INNER JOIN reads ON books.id = reads.book_id INNER JOIN sessions ON reads.id = sessions.read_id WHERE books.user_id = $1 GROUP BY tags.name ORDER BY \"totalTime\" DESC LIMIT 5;",
+      [user.id]
+    )
+
+    console.log(topTags.rows);
+
+    const topTagsData = {
+      labels: [],
+      dataValues: []
+    }
+
+    topTags.rows.forEach(row => {
+      topTagsData.labels.push(row.name);
+      topTagsData.dataValues.push(row.totalTime)
+    })
+
+    res.status(200).json(topTagsData);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
+// Get the top tags by number of books owned
+router.get('/tags/books', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per month
+    const topTags = await pool.query(
+      "SELECT tags.name, COUNT(books.id)::INTEGER AS count from tags INNER JOIN books ON tags.book_id = books.id WHERE books.user_id = $1 GROUP BY tags.name ORDER BY count DESC LIMIT 5;",
+      [user.id]
+    )
+
+    console.log(topTags.rows);
+
+    const topTagsData = {
+      labels: [],
+      dataValues: []
+    }
+
+    topTags.rows.forEach(row => {
+      topTagsData.labels.push(row.name);
+      topTagsData.dataValues.push(row.count)
+    })
+
+    res.status(200).json(topTagsData);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
 
 module.exports = router;

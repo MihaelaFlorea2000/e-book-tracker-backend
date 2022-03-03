@@ -275,7 +275,7 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
   }
 })
 
-// Get information about the current user
+// Upload epub file and cover image
 router.post('/edit/upload', 
   authenticateToken, 
   uploadBookMulter,
