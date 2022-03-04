@@ -316,6 +316,31 @@ router.get('/total', authenticateToken, async (req, res, next) => {
   }
 })
 
+// Get the calendar data
+router.get('/calendar', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+
+  try {
+
+    // Books read per month
+    const days = await pool.query(
+      "SELECT DISTINCT DATE(sessions.start_date) FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1;",
+      [user.id]
+    )
+
+    const dates = [];
+
+    days.rows.forEach((row) => {
+      dates.push(new Date(row.date).toLocaleDateString());
+    })
+
+    res.status(200).json(dates);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Get the top tags by reading time
 router.get('/tags/read', authenticateToken, async (req, res, next) => {
   const user = req.user;
