@@ -185,16 +185,20 @@ router.get('/weekly', authenticateToken, async (req, res, next) => {
     )
 
     // Fill blank days with 0
-    const weekDays = ['Mon', 'Tue', 'Wed', 'Thr', 'Fri', 'Sat', 'Sun'];
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const weekMap = new Map();
 
     weekDays.forEach((day) => {
       weekMap.set(day, 0);
     })
 
+    console.log(weekMap);
+
     pastWeek.rows.forEach((row) => {
       weekMap.set(row.label, row.totalTime)
     })
+
+    console.log(weekMap);
 
     const weekly = {
       labels: Array.from(weekMap.keys()),
@@ -333,7 +337,7 @@ router.get('/calendar', authenticateToken, async (req, res, next) => {
     days.rows.forEach((row) => {
       dates.push(new Date(row.date).toLocaleDateString('en-US'));
     })
-    
+
     res.status(200).json(dates);
   } catch (err) {
     res.status(500);

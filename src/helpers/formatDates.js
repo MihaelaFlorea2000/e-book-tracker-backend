@@ -14,7 +14,7 @@ Date.prototype.removeDays = function (days) {
 
 // from 2022-03-01T22:00:00.000Z to 2022-03-01
 const formatDate = (date) => {
-  return new Date(date).toISOString().split('T')[0]
+  return new Date(date).toLocaleDateString('en-US');
 }
 
 // Return array of the past 30 days
