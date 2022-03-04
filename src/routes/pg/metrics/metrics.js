@@ -123,9 +123,14 @@ router.get('/goals', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    // Minutes and hours read per day
-    const hoursPerDay = dailyTime.rows[0].count.hours ? dailyTime.rows[0].count.hours : 0;
-    const minutesPerDay = dailyTime.rows[0].count.minutes ? dailyTime.rows[0].count.minutes : 0;
+    let hoursPerDay = 0;
+    let minutesPerDay = 0;
+
+    if (dailyTime.rows[0].count) {
+      // Minutes and hours read per day
+      hoursPerDay = dailyTime.rows[0].count.hours ? dailyTime.rows[0].count.hours : 0;
+      minutesPerDay = dailyTime.rows[0].count.minutes ? dailyTime.rows[0].count.minutes : 0;
+    }
 
     // Total user daily goal in minutes
     const setDaily = setGoals.rows[0].dailyHours * 60 + setGoals.rows[0].dailyMinutes;
@@ -323,8 +328,6 @@ router.get('/tags/read', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    console.log(topTags.rows);
-
     const topTagsData = {
       labels: [],
       dataValues: []
@@ -353,8 +356,6 @@ router.get('/tags/books', authenticateToken, async (req, res, next) => {
       "SELECT tags.name, COUNT(books.id)::INTEGER AS count from tags INNER JOIN books ON tags.book_id = books.id WHERE books.user_id = $1 GROUP BY tags.name ORDER BY count DESC LIMIT 5;",
       [user.id]
     )
-
-    console.log(topTags.rows);
 
     const topTagsData = {
       labels: [],
