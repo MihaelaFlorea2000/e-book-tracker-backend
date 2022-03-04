@@ -328,16 +328,12 @@ router.get('/calendar', authenticateToken, async (req, res, next) => {
       [user.id]
     )
 
-    console.log(days.rows);
-
     const dates = [];
 
     days.rows.forEach((row) => {
-      dates.push(new Date(row.date).toLocaleDateString());
+      dates.push(new Date(row.date).toLocaleDateString('en-US'));
     })
-
-    //console.log(dates);
-
+    
     res.status(200).json(dates);
   } catch (err) {
     res.status(500);
