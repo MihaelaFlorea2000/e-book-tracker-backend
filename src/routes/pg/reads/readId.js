@@ -25,13 +25,8 @@ router.delete('/', authenticateToken, async (req, res, next) => {
         'UPDATE books SET current_read = null WHERE id = $1',
         [bookId]
       )
-
-      // Delete sessions corresponding to the read
-      await pool.query(
-        'DELETE FROM sessions WHERE read_id = $1',
-        [readId]
-      )
     }
+
     // Delete read from db
     await pool.query(
       'DELETE FROM reads WHERE id = $1',
@@ -63,18 +58,17 @@ router.delete('/', authenticateToken, async (req, res, next) => {
 router.put('/', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
   const readId = req.params.readId;
-  const { startDate, endDate, time, sessions, rating, notes } = req.body;
+  const { startDate, endDate, rating, notes } = req.body;
 
   // Format time and dates properly
-  const intervalString = getInterval(time);
   const startTimestamp = getTimestamp(startDate);
   const endTimestamp = getTimestamp(endDate);
 
   try {
 
     await pool.query(
-      `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', time = INTERVAL \'${intervalString}\', sessions = $1, rating = $2, notes = $3 WHERE id = $4 AND book_id = $5;`,
-      [sessions, rating, notes, readId, bookId]
+      `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', rating = $1, notes = $2 WHERE id = $3 AND book_id = $4;`,
+      [rating, notes, readId, bookId]
     );
 
     return normalMsg(res, 200, true, "OK");
@@ -89,10 +83,9 @@ router.post('/finished', authenticateToken, async (req, res, next) => {1
   const user = req.user;
   const bookId = req.params.bookId;
   const readId = req.params.readId;
-  const { startDate, endDate, time, sessions, rating, notes } = req.body;
+  const { startDate, endDate, rating, notes } = req.body;
 
   // Format time and dates properly
-  const intervalString = getInterval(time);
   const startTimestamp = getTimestamp(startDate);
   const endTimestamp = getTimestamp(endDate);
 
@@ -120,8 +113,8 @@ router.post('/finished', authenticateToken, async (req, res, next) => {1
 
     // Update read
     await pool.query(
-      `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', time = INTERVAL \'${intervalString}\', sessions = $1, rating = $2, notes = $3 WHERE id = $4 AND book_id = $5;`,
-      [sessions, rating, notes, readId, bookId]
+      `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', rating = $1, notes = $2 WHERE id = $3 AND book_id = $4;`,
+      [rating, notes, readId, bookId]
     );
 
     // Delete sessions

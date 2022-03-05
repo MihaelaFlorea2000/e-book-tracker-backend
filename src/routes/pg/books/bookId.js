@@ -201,16 +201,16 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
       [START_LOCATION, bookId]
     )
 
-    // Calculate total read time and number of sessions
-    const sessions = await pool.query(
-      'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
-      [currentRead]
-    )
+    // // Calculate total read time and number of sessions
+    // const sessions = await pool.query(
+    //   'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
+    //   [currentRead]
+    // )
 
     // Update read
     await pool.query(
-      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2, time = $3, sessions = $4 WHERE id = $5',
-      [rating, notes, sessions.rows[0].totalTime, parseInt(sessions.rows[0].sessionsNum), currentRead]
+      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2b WHERE id = $3',
+      [rating, notes, currentRead]
     )
 
     // Delete sessions

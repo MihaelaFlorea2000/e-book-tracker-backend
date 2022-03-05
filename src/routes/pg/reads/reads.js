@@ -14,31 +14,26 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'SELECT id, start_date AS "startDate", end_date AS "endDate", rating, notes, time, sessions FROM reads WHERE book_id = $1 AND user_id = $2 ORDER BY end_date DESC;',
+      'SELECT id, start_date AS "startDate", end_date AS "endDate", rating, notes FROM reads WHERE book_id = $1 AND user_id = $2 ORDER BY end_date DESC;',
       [bookId, user.id]
-    )
+    );
 
-    let currentReadId = -1;
-    let currentReadIndex = -1;
+    const readsData = [];
 
-    data.rows.forEach((row, index) => {
-      if (!row.endDate) {
-        currentReadIndex = index;
-        currentReadId = row.id;
-      }
-    })
-
-    if (currentReadId >= 0 && currentReadIndex >= 0) {
-      const sessions = await pool.query(
-        'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
-        [currentReadId]
+    for (const row of data.rows) {
+      const sessionsData = await pool.query(
+        'SELECT COUNT(id)::INTEGER AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
+        [row.id]
       )
 
-      data.rows[currentReadIndex].sessions = parseInt(sessions.rows[0].sessionsNum);
-      data.rows[currentReadIndex].time = sessions.rows[0].totalTime;
+      const read = row;
+      read.time = sessionsData.rows[0].totalTime;
+      read.sessions = sessionsData.rows[0].sessionsNum;
+
+      readsData.push(read);
     }
 
-    res.status(200).json(data.rows);
+    res.status(200).json(readsData);
   } catch (err) {
     res.status(500);
     next(err)
@@ -49,20 +44,18 @@ router.get('/', authenticateToken, async (req, res, next) => {
 router.post('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const bookId = req.params.bookId;
-  const { startDate, endDate, time, sessions, rating, notes } = req.body;
+  const { startDate, endDate, rating, notes } = req.body;
 
   // Format time and dates properly
-  const intervalString = getInterval(time);
   const startTimestamp = getTimestamp(startDate);
   const endTimestamp = getTimestamp(endDate);
 
   try {
     const data = await pool.query(
-      `INSERT INTO reads (book_id, user_id, start_date, end_date, time, sessions, rating, notes) VALUES ($1, $2, TIMESTAMP \'${startTimestamp}\', TIMESTAMP \'${endTimestamp}\', INTERVAL \'${intervalString}\', $3, $4, $5) RETURNING *`,
+      `INSERT INTO reads (book_id, user_id, start_date, end_date, rating, notes) VALUES ($1, $2, TIMESTAMP \'${startTimestamp}\', TIMESTAMP \'${endTimestamp}\', $3, $4) RETURNING *`,
       [
         bookId,
         user.id,
-        sessions,
         rating,
         notes
       ]
