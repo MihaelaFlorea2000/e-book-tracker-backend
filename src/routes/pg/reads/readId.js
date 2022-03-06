@@ -7,6 +7,24 @@ const { authenticateToken } = require('../../../middlewares');
 const { getTimestamp, getInterval } = require('../../../helpers/prepareRead');
 const { START_LOCATION } = require('../../../helpers/constants');
 
+// Get one specific read
+router.get('/', authenticateToken, async (req, res, next) => {
+  const { bookId, readId } = req.params;
+  const user = req.user;
+
+  try {
+    const readData = await pool.query(
+      'SELECT id, start_date AS "startDate", end_date AS "endDate", rating, notes FROM reads WHERE id = $1 AND book_id = $2 AND user_id = $3;',
+      [readId, bookId, user.id]
+    )
+
+    return res.status(200).json(readData.rows[0]);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Delete one specific read
 router.delete('/', authenticateToken, async (req, res, next) => {
   const {bookId, readId} = req.params;
