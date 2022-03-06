@@ -13,7 +13,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const data = await pool.query(
-      'SELECT id, start_date AS "startDate", time FROM sessions WHERE read_id = $1 ORDER BY start_date DESC;',
+      'SELECT id, start_date AS "startDate", time FROM sessions WHERE read_id = $1 ORDER BY start_date ASC;',
       [readId]
     )
 
