@@ -7,7 +7,7 @@ const highlightsRouter = require('./highlights/highlights');
 const readsRouter = require('./reads/reads');
 const sessionsRouter = require('./sessions/sessions');
 const metricsRouter = require('./metrics/metrics');
-
+const searchRouter = require('./search/search');
 
 
 router.use('/books', booksRouter);
@@ -16,5 +16,6 @@ router.use('/highlights/:bookId', highlightsRouter);
 router.use('/reads/:bookId', readsRouter);
 router.use('/sessions/:readId', sessionsRouter);
 router.use('/metrics', metricsRouter);
+router.use('/search', searchRouter)
 
 module.exports = router;
