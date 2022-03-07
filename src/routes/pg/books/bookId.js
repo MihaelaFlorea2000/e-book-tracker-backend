@@ -20,8 +20,19 @@ router.get('/', authenticateToken, async (req, res, next) => {
       [bookId, user.id]
     )
 
-    // Add tags
+    
+    // Check rating
+    const avgRatingData = await pool.query(
+      'SELECT AVG(reads.rating) AS avg FROM reads INNER JOIN books ON reads.book_id = books.id WHERE books.id = $1 AND books.user_id = $2;',
+      [bookId, user.id]
+    )
+
+    const avgRating = avgRatingData.rows[0].avg;
+
     const data = bookData.rows[0];
+    data.rating = data.rating === 0 ? avgRating : data.rating;
+
+    // Add tags
     data.tags = [];
 
     const tags = await pool.query(
@@ -201,23 +212,11 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
       [START_LOCATION, bookId]
     )
 
-    // // Calculate total read time and number of sessions
-    // const sessions = await pool.query(
-    //   'SELECT COUNT(id) AS "sessionsNum", SUM(time) AS "totalTime" FROM sessions WHERE read_id = $1',
-    //   [currentRead]
-    // )
-
     // Update read
     await pool.query(
       'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2b WHERE id = $3',
       [rating, notes, currentRead]
     )
-
-    // Delete sessions
-    // await pool.query(
-    //   'DELETE FROM sessions WHERE read_id = $1',
-    //   [currentRead]
-    // )
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
