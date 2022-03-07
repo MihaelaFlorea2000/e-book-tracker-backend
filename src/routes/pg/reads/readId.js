@@ -117,21 +117,6 @@ router.post('/finished', authenticateToken, async (req, res, next) => {1
   const endTimestamp = getTimestamp(endDate);
 
   try {
-    const book = await pool.query(
-      'SELECT id, user_id AS "userId", current_read AS "currentRead" FROM books WHERE id = $1',
-      [bookId]
-    )
-
-    if (book.rows.length === 0) {
-      return res.status(404).json({ status: false, message: "Not Found" });
-    }
-
-    if (book.rows[0].userId !== user.id) {
-      return res.status(401).json({ status: false, message: "Unauthorised" });
-    }
-
-    const currentRead = book.rows[0].currentRead
-
     // Book is not currently being read anymore
     await pool.query(
       'UPDATE books SET current_read = null, read = true, location = $1 WHERE id = $2',
@@ -143,12 +128,6 @@ router.post('/finished', authenticateToken, async (req, res, next) => {1
       `UPDATE reads SET start_date = TIMESTAMP \'${startTimestamp}\', end_date = TIMESTAMP \'${endTimestamp}\', rating = $1, notes = $2 WHERE id = $3 AND book_id = $4;`,
       [rating, notes, readId, bookId]
     );
-
-    // Delete sessions
-    // await pool.query(
-    //   'DELETE FROM sessions WHERE read_id = $1',
-    //   [currentRead]
-    // )
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {

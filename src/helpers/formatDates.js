@@ -12,9 +12,19 @@ Date.prototype.removeDays = function (days) {
   return date;
 }
 
-// from 2022-03-01T22:00:00.000Z to 2022-03-01
+/**
+ * This post helped with the correct format for time zone
+ * https://stackoverflow.com/questions/23593052/format-javascript-date-as-yyyy-mm-dd
+ */
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US');
+  if (!date) return '';
+
+  const offset = date.getTimezoneOffset();
+  date = new Date(date.getTime() - (offset * 60 * 1000));
+
+  return date.toISOString().split('T')[0];
+
+  //return new Date(date).toLocaleDateString('en-US');
 }
 
 // Return array of the past 30 days

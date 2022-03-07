@@ -335,7 +335,7 @@ router.get('/calendar', authenticateToken, async (req, res, next) => {
     const dates = [];
 
     days.rows.forEach((row) => {
-      dates.push(new Date(row.date).toLocaleDateString('en-US'));
+      dates.push(formatDate(row.date));
     })
 
     res.status(200).json(dates);
