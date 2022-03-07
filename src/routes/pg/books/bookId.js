@@ -5,7 +5,8 @@ const { pool } = require('../../../config/postgresConfig');
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter, deleteBook } = require('../../../config/multerConfig');
-const { uploadImage }  =require('../../../helpers/uploadImage');
+const { uploadImage } = require('../../../helpers/uploadImage');
+const { round } = require('../../../helpers/round');
 const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
 
@@ -27,7 +28,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
       [bookId, user.id]
     )
 
-    const avgRating = avgRatingData.rows[0].avg;
+    const avgRating = round(avgRatingData.rows[0].avg);
 
     const data = bookData.rows[0];
     data.rating = data.rating === 0 ? avgRating : data.rating;
