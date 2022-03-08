@@ -8,6 +8,8 @@ const { normalMsg, loginMsg } = require('../../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
 const { authenticateToken } = require('../../../middlewares');
 
+const profileRouter = require('./profile/profile');
+
 // Register a new user
 router.post('/register', async (req, res, next) => {
   const { email, password, confirmPassword, firstName, lastName } = req.body;
@@ -115,7 +117,7 @@ router.get('/currentUser', authenticateToken, async (req, res, next) => {
   }
 });
 
-// Get the goals set by the current user
+// Update the goals set by the current user
 router.post('/goals', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const { yearly, monthly, dailyHours, dailyMinutes } = req.body;
@@ -131,5 +133,7 @@ router.post('/goals', authenticateToken, async (req, res, next) => {
     next(err);
   }
 });
+
+router.use('/profile', profileRouter);
 
 module.exports = router;

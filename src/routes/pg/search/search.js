@@ -13,7 +13,7 @@ router.get('/', authenticateToken, async (req, res) => {
     const searchResults = {}
 
     const userData = await pool.query(
-      'SELECT users.id, users.first_name AS "firstName", users.last_name AS "lastName", users.profile_image AS "profileImage" FROM users WHERE lower(first_name) LIKE lower($1) OR lower(last_name) LIKE lower($1);',
+      'SELECT id, first_name AS "firstName", last_name AS "lastName", profile_image AS "profileImage" FROM users WHERE lower(first_name) LIKE lower($1) OR lower(last_name) LIKE lower($1);',
       [`%${query}%`]);
 
     searchResults.users = userData.rows;
