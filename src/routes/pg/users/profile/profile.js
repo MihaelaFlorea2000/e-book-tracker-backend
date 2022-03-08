@@ -9,13 +9,9 @@ const { authenticateToken } = require('../../../../middlewares');
 // Update information about the user
 router.put('/edit', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { id, firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
   try {
-    // Check user is changing his own info
-    if (id !== user.id) {
-      return res.status(401).json({ status: false, meessage: "Unauthorised" });
-    }
 
     // Check email already exists
     const checkEmail = await pool.query('SELECT * FROM users WHERE email = $1 AND id != $2', [email, user.id]);
