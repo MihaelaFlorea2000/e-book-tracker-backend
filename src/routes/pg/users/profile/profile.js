@@ -2,9 +2,12 @@
 require('dotenv').config();
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const { uploadProfileMulter } = require('../../../../config/multerConfig');
 const { pool } = require('../../../../config/postgresConfig');
 const { normalMsg } = require('../../../../helpers/returnMsg');
+const { uploadProfileImage } = require('../../../../helpers/uploadImage');
 const { authenticateToken } = require('../../../../middlewares');
+const path = require('path');
 
 // Update information about the user
 router.put('/edit', authenticateToken, async (req, res, next) => {
@@ -41,5 +44,34 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
     next(err);
   }
 });
+
+// Upload profile image
+router.post('/edit/upload',
+  authenticateToken,
+  uploadProfileMulter,
+  async (req, res, next) => {
+    const user = req.user;
+    const profileImage = req.file;
+
+    try {
+      // Add paths to db
+      if (profileImage) {
+        const toUpload = profileImage;
+        toUpload.originalname = `profileImage${path.extname(profileImage.originalname)}`;
+        
+        const profileImageUrl = await uploadProfileImage(toUpload, user.id);
+
+        await pool.query(
+          'UPDATE users SET profile_image = $1 WHERE id = $2;',
+          [profileImageUrl, user.id]
+        )
+      }
+      return normalMsg(res, 200, true, "OK");
+    } catch (err) {
+      res.status(500);
+      next(err)
+    }
+  }
+);
 
 module.exports = router;

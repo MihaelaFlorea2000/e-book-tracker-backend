@@ -5,7 +5,7 @@ const { pool } = require('../../../config/postgresConfig');
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
 const { uploadBookMulter, deleteBook } = require('../../../config/multerConfig');
-const { uploadImage } = require('../../../helpers/uploadImage');
+const { uploadBookImage } = require('../../../helpers/uploadImage');
 const { round } = require('../../../helpers/round');
 const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
@@ -289,7 +289,7 @@ router.post('/edit/upload',
       if (file) {
         const toUpload = file[0];
         toUpload.originalname = 'file.epub';
-        const fileUrl = await uploadImage(toUpload, user.id, bookId);
+        const fileUrl = await uploadBookImage(toUpload, user.id, bookId);
 
         await pool.query(
           'UPDATE books SET file = $1 WHERE id = $2;',
@@ -300,7 +300,7 @@ router.post('/edit/upload',
       if (coverImage) {
         const toUpload = coverImage[0]
         toUpload.originalname = `coverImage${path.extname(coverImage[0].originalname)}`;
-        const coverImageUrl = await uploadImage(toUpload, user.id, bookId);
+        const coverImageUrl = await uploadBookImage(toUpload, user.id, bookId);
         
         await pool.query(
           'UPDATE books SET cover_image = $1 WHERE id = $2;',
