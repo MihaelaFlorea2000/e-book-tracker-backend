@@ -25,12 +25,12 @@ router.put('/edit', authenticateToken, async (req, res, next) => {
       let hash = '';
       hash = await bcrypt.hash(password, 10);
       await pool.query(
-        'UPDATE users SET first_name = $1, last_name = $2, email = $3, password = $4, profile_image = $5 WHERE id = $6;',
-        [firstName, lastName, email, hash, profileImage, user.id]
+        'UPDATE users SET first_name = $1, last_name = $2, email = $3, password = $4 WHERE id = $5;',
+        [firstName, lastName, email, hash, user.id]
       );
     } else {
       await pool.query(
-        'UPDATE users SET first_name = $1, last_name = $2, email = $3 WHERE id = $5;',
+        'UPDATE users SET first_name = $1, last_name = $2, email = $3 WHERE id = $4;',
         [firstName, lastName, email, user.id]
       );
     }
