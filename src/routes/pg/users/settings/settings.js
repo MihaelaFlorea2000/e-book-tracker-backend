@@ -27,7 +27,7 @@ router.put('/', authenticateToken, async (req, res, next) => {
 
   try {
     await pool.query(
-      'UPDATE users SET dark_theme = $1, font_size = $2, reader_theme = $3 WHERE id = $3',
+      'UPDATE users SET dark_theme = $1, font_size = $2, reader_theme = $3 WHERE id = $4',
       [darkTheme, fontSize, readerTheme, user.id]
     );
     return normalMsg(res, 200, true, 'OK');
