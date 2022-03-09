@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const { authenticateToken } = require('../../../middlewares');
 
 const profileRouter = require('./profile/profile');
+const settingsRouter = require('./settings/settings');
 
 // Register a new user
 router.post('/register', async (req, res, next) => {
@@ -135,5 +136,6 @@ router.post('/goals', authenticateToken, async (req, res, next) => {
 });
 
 router.use('/profile', profileRouter);
+router.use('/settings', settingsRouter);
 
 module.exports = router;
