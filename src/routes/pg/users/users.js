@@ -11,6 +11,24 @@ const { authenticateToken } = require('../../../middlewares');
 const profileRouter = require('./profile/profile');
 const settingsRouter = require('./settings/settings');
 
+// Get information about the current user
+router.get('/:userId', authenticateToken, async (req, res, next) => {
+  const currentUser = req.user;
+  const userId = req.params.userId;
+
+  try {
+    const data = await pool.query(
+      'SELECT id, first_name AS "firstName", last_name AS "lastName", email, profile_image AS "profileImage" FROM users WHERE users.id = $1',
+      [userId]
+    );
+    return res.status(200).json(data.rows[0]);
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
+
 // Register a new user
 router.post('/register', async (req, res, next) => {
   const { email, password, confirmPassword, firstName, lastName } = req.body;
