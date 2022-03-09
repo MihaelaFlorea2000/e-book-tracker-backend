@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
   try {
     const data = await pool.query(
-      'SELECT dark_theme AS "darkTheme", font_size AS "fontSize" FROM users WHERE id = $1',
+      'SELECT dark_theme AS "darkTheme", font_size AS "fontSize", reader_theme AS "readerTheme" FROM users WHERE id = $1',
       [user.id]
     );
     return res.status(200).json(data.rows[0]);
@@ -23,12 +23,12 @@ router.get('/', authenticateToken, async (req, res, next) => {
 // Get information about the current user
 router.put('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { darkTheme, fontSize } = req.body
+  const { darkTheme, fontSize, readerTheme } = req.body
 
   try {
     await pool.query(
-      'UPDATE users SET dark_theme = $1, font_size = $2 WHERE id = $3',
-      [darkTheme, fontSize, user.id]
+      'UPDATE users SET dark_theme = $1, font_size = $2, reader_theme = $3 WHERE id = $3',
+      [darkTheme, fontSize, readerTheme, user.id]
     );
     return normalMsg(res, 200, true, 'OK');
   } catch (err) {
