@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
   try {
     const data = await pool.query(
-      'SELECT dark_theme AS "darkTheme", font_size AS "fontSize", reader_theme AS "readerTheme" FROM users WHERE id = $1',
+      'SELECT dark_theme AS "darkTheme", font_size AS "fontSize", reader_theme AS "readerTheme", notifications, profile_visibility AS "profileVisibility", show_goals AS "showGoals", show_books as "showBooks", show_numbers AS "showNumbers" FROM users WHERE id = $1',
       [user.id]
     );
     return res.status(200).json(data.rows[0]);
@@ -21,7 +21,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 });
 
 // Get information about the current user
-router.put('/', authenticateToken, async (req, res, next) => {
+router.put('/appearance', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const { darkTheme, fontSize, readerTheme } = req.body
 
@@ -29,6 +29,23 @@ router.put('/', authenticateToken, async (req, res, next) => {
     await pool.query(
       'UPDATE users SET dark_theme = $1, font_size = $2, reader_theme = $3 WHERE id = $4',
       [darkTheme, fontSize, readerTheme, user.id]
+    );
+    return normalMsg(res, 200, true, 'OK');
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
+// Get information about the current user
+router.put('/privacy', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  const { notifications, profileVisibility, showGoals, showBooks, showNumbers} = req.body
+
+  try {
+    await pool.query(
+      'UPDATE users SET notifications = $1, profile_visibility = $2, show_goals = $3, show_books = $4, show_numbers = $5 WHERE id = $6',
+      [notifications, profileVisibility, showGoals, showBooks, showNumbers, user.id]
     );
     return normalMsg(res, 200, true, 'OK');
   } catch (err) {
