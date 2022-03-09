@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
   try {
     const data = await pool.query(
-      'SELECT dark_theme AS "darkTheme" FROM users WHERE id = $1',
+      'SELECT dark_theme AS "darkTheme", font_size AS "fontSize" FROM users WHERE id = $1',
       [user.id]
     );
     return res.status(200).json(data.rows[0]);
@@ -30,7 +30,24 @@ router.put('/theme', authenticateToken, async (req, res, next) => {
       'UPDATE users SET dark_theme = $1 WHERE id = $2',
       [darkTheme, user.id]
     );
-    return normalMsg(res, 200, true, 'OK')
+    return normalMsg(res, 200, true, 'OK');
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
+// Get information about the current user
+router.put('/font', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  const { fontSize } = req.body
+
+  try {
+    await pool.query(
+      'UPDATE users SET font_size = $1 WHERE id = $2',
+      [fontSize, user.id]
+    );
+    return normalMsg(res, 200, true, 'OK');
   } catch (err) {
     res.status(500);
     next(err);
