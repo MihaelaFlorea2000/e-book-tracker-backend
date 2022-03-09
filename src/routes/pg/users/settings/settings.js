@@ -21,31 +21,14 @@ router.get('/', authenticateToken, async (req, res, next) => {
 });
 
 // Get information about the current user
-router.put('/theme', authenticateToken, async (req, res, next) => {
+router.put('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { darkTheme } = req.body
+  const { darkTheme, fontSize } = req.body
 
   try {
     await pool.query(
-      'UPDATE users SET dark_theme = $1 WHERE id = $2',
-      [darkTheme, user.id]
-    );
-    return normalMsg(res, 200, true, 'OK');
-  } catch (err) {
-    res.status(500);
-    next(err);
-  }
-});
-
-// Get information about the current user
-router.put('/font', authenticateToken, async (req, res, next) => {
-  const user = req.user;
-  const { fontSize } = req.body
-
-  try {
-    await pool.query(
-      'UPDATE users SET font_size = $1 WHERE id = $2',
-      [fontSize, user.id]
+      'UPDATE users SET dark_theme = $1, font_size = $2 WHERE id = $3',
+      [darkTheme, fontSize, user.id]
     );
     return normalMsg(res, 200, true, 'OK');
   } catch (err) {
