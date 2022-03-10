@@ -10,6 +10,46 @@ const { round } = require('../../../helpers/round');
 const { START_LOCATION } = require('../../../helpers/constants');
 const path = require('path');
 
+// Get information about one specific book
+router.get('/', authenticateToken, async (req, res, next) => {
+  const { bookId } = req.params;
+
+  try {
+    const bookData = await pool.query(
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE id = $1;',
+      [bookId]
+    )
+
+    // Check rating
+    const avgRatingData = await pool.query(
+      'SELECT AVG(reads.rating) AS avg FROM reads INNER JOIN books ON reads.book_id = books.id WHERE books.id = $1;',
+      [bookId]
+    )
+
+    const avgRating = round(avgRatingData.rows[0].avg);
+
+    const data = bookData.rows[0];
+    data.rating = data.rating === 0 ? avgRating : data.rating;
+
+    // Add tags
+    data.tags = [];
+
+    const tags = await pool.query(
+      'SELECT name FROM tags WHERE book_id = $1',
+      [bookId]
+    );
+
+    tags.rows.forEach(tag => {
+      data.tags.push(tag.name);
+    });
+
+    res.status(200).json(data);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 // Delete a book
 router.delete('/', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
@@ -273,44 +313,6 @@ router.post('/edit/upload',
   }
 );
 
-// Get information about one specific book
-router.get('/:userId', authenticateToken, async (req, res, next) => {
-  const { bookId, userId } = req.params;
 
-  try {
-    const bookData = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", publisher, pub_date AS "pubDate", language, rating, file, file_name AS "fileName", series, location, last_opened AS "lastOpened" FROM books WHERE id = $1 AND user_id = $2;',
-      [bookId, userId]
-    )
-
-    // Check rating
-    const avgRatingData = await pool.query(
-      'SELECT AVG(reads.rating) AS avg FROM reads INNER JOIN books ON reads.book_id = books.id WHERE books.id = $1 AND books.user_id = $2;',
-      [bookId, userId]
-    )
-
-    const avgRating = round(avgRatingData.rows[0].avg);
-
-    const data = bookData.rows[0];
-    data.rating = data.rating === 0 ? avgRating : data.rating;
-
-    // Add tags
-    data.tags = [];
-
-    const tags = await pool.query(
-      'SELECT name FROM tags WHERE book_id = $1',
-      [bookId]
-    );
-
-    tags.rows.forEach(tag => {
-      data.tags.push(tag.name);
-    });
-
-    res.status(200).json(data);
-  } catch (err) {
-    res.status(500);
-    next(err)
-  }
-})
 
 module.exports = router;
