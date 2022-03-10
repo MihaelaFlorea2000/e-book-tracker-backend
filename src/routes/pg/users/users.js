@@ -140,7 +140,6 @@ router.use('/settings', settingsRouter);
 
 // Get information about the current user
 router.get('/:userId', authenticateToken, async (req, res, next) => {
-  const currentUser = req.user;
   const userId = req.params.userId;
 
   try {

@@ -1,4 +1,4 @@
-// /pg/users/profile
+// /pg/users/settings
 require('dotenv').config();
 const router = require('express').Router();
 const { pool } = require('../../../../config/postgresConfig');
@@ -46,6 +46,22 @@ router.put('/privacy', authenticateToken, async (req, res, next) => {
     await pool.query(
       'UPDATE users SET notifications = $1, profile_visibility = $2, show_goals = $3, show_books = $4, show_numbers = $5 WHERE id = $6',
       [notifications, profileVisibility, showGoals, showBooks, showNumbers, user.id]
+    );
+    return normalMsg(res, 200, true, 'OK');
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
+// Get information about the current user
+router.get('/profile/:userId', authenticateToken, async (req, res, next) => {
+  const userId = req.params.userId;
+
+  try {
+    await pool.query(
+      'SELECT profile_visibility AS "profileVisibility", show_goals AS "showGoals", show_books as "showBooks", show_numbers AS "showNumbers" FROM users WHERE id = $1',
+      [userId]
     );
     return normalMsg(res, 200, true, 'OK');
   } catch (err) {
