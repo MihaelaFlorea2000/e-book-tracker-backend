@@ -160,7 +160,7 @@ router.get('/:userId/books', authenticateToken, async (req, res, next) => {
 
   try {
     const bookData = await pool.query(
-      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", publisher, pub_date AS "pubDate", language, rating, series FROM books WHERE user_id = $1 ORDER BY last_opened DESC LIMIT 10',
+      'SELECT id, title, cover_image AS "coverImage" FROM books WHERE user_id = $1 ORDER BY last_opened DESC LIMIT 10',
       [userId]
     );
 
