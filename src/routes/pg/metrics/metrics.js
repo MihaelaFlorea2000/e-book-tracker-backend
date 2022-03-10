@@ -7,23 +7,24 @@ const { round } = require('../../../helpers/round');
 const { getDaysInMonth, formatDate, getYears } = require('../../../helpers/formatDates');
 
 // Get the numbers
-router.get('/numbers', authenticateToken, async (req, res, next) => {
+router.get('/numbers/:userId', authenticateToken, async (req, res, next) => {
   const user = req.user;
+  const userId = req.params.userId;
 
   try {
     const booksRead = await pool.query(
       'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND read = true',
-      [user.id]
+      [userId]
     )
 
     const booksCurrRead = await pool.query(
       'SELECT COUNT(DISTINCT id) AS count FROM books WHERE user_id = $1 AND current_read IS NOT NULL',
-      [user.id]
+      [userId]
     )
 
     const authorsRead = await pool.query(
       'SELECT authors FROM books WHERE user_id = $1 AND read = true',
-      [user.id]
+      [userId]
     )
 
     let authorsReadCount = 0;
@@ -34,17 +35,17 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
 
     const longestSession = await pool.query(
       'SELECT MAX(sessions.time) AS max FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true;',
-      [user.id]
+      [userId]
     )
 
     const avgTimePerSession = await pool.query(
       'SELECT AVG(sessions.time) AS avg FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true;',
-      [user.id]
+      [userId]
     )
 
     const bestDay = await pool.query(
       'SELECT DATE(sessions.start_date) AS day, SUM(sessions.time) FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true GROUP BY day',
-      [user.id]
+      [userId]
     )
 
     const bestDayValue = bestDay.rows[0] ? bestDay.rows[0].day : '';
@@ -94,33 +95,34 @@ router.get('/percentage', authenticateToken, async (req, res, next) => {
 })
 
 // Get the done goals
-router.get('/goals', authenticateToken, async (req, res, next) => {
+router.get('/goals/:userId', authenticateToken, async (req, res, next) => {
   const user = req.user;
+  const userId = req.params.userId;
 
   try {
 
     // Get user goals
     const setGoals = await pool.query(
       'SELECT yearly, monthly, daily_hours AS "dailyHours", daily_minutes AS "dailyMinutes" FROM users WHERE id = $1',
-      [user.id]
+      [userId]
     )
 
     // Books read per year
     const yearlyBooks = await pool.query(
       'SELECT COUNT(DISTINCT books.id) AS count FROM books INNER JOIN reads ON books.id = reads.book_id WHERE books.user_id = $1 AND reads.end_date IS NOT NULL AND books.read = true AND(EXTRACT(YEAR FROM reads.end_date)) = EXTRACT(YEAR FROM current_timestamp);',
-      [user.id]
+      [userId]
     )
 
     // Books read per month
     const monthlyBooks = await pool.query(
       'SELECT COUNT(DISTINCT books.id) AS count FROM books INNER JOIN reads ON books.id = reads.book_id WHERE books.user_id = $1 AND reads.end_date IS NOT NULL AND books.read = true AND(EXTRACT(YEAR FROM reads.end_date)) = EXTRACT(YEAR FROM current_timestamp)AND(EXTRACT(MONTH FROM reads.end_date)) = EXTRACT(MONTH FROM current_timestamp);',
-      [user.id]
+      [userId]
     )
 
     // Time read per day
     const dailyTime = await pool.query(
       'SELECT SUM(sessions.time) AS count FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND DATE(sessions.start_date) = CURRENT_DATE;',
-      [user.id]
+      [userId]
     )
 
     let hoursPerDay = 0;
