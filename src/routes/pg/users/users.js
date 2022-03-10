@@ -155,4 +155,39 @@ router.get('/:userId', authenticateToken, async (req, res, next) => {
   }
 });
 
+router.get('/:userId/books', authenticateToken, async (req, res, next) => {
+  const userId = req.params.userId
+
+  try {
+    const bookData = await pool.query(
+      'SELECT id, user_id AS "userId", title, authors, description, cover_image AS "coverImage", publisher, pub_date AS "pubDate", language, rating, series FROM books WHERE user_id = $1 ORDER BY last_opened DESC LIMIT 10',
+      [userId]
+    );
+
+    // Get Tags
+    let data = [];
+
+    for (const row of bookData.rows) {
+      const book = row;
+      book.tags = [];
+
+      const tags = await pool.query(
+        'SELECT name FROM tags WHERE book_id = $1',
+        [row.id]
+      );
+
+      tags.rows.forEach(tag => {
+        book.tags.push(tag.name);
+      });
+
+      data.push(book);
+    }
+
+    return res.status(200).json(data);
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+})
+
 module.exports = router;
