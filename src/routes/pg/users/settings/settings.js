@@ -59,11 +59,11 @@ router.get('/profile/:userId', authenticateToken, async (req, res, next) => {
   const userId = req.params.userId;
 
   try {
-    await pool.query(
+    const data = await pool.query(
       'SELECT profile_visibility AS "profileVisibility", show_goals AS "showGoals", show_books as "showBooks", show_numbers AS "showNumbers" FROM users WHERE id = $1',
       [userId]
     );
-    return normalMsg(res, 200, true, 'OK');
+    return res.status(200).json(data.rows[0]);
   } catch (err) {
     res.status(500);
     next(err);
