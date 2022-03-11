@@ -12,7 +12,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
   try {
     const data = await pool.query(
-      'SELECT users.id, users.first_name AS "firstName", users.last_name AS "lastName", users.email, users.profile_image AS "profileImage" FROM friends LEFT JOIN users ON friends.friend_id = users.id WHERE friends.user_id= $1',
+      'SELECT users.id, users.first_name AS "firstName", users.last_name AS "lastName", users.profile_image AS "profileImage" FROM friends LEFT JOIN users ON friends.friend_id = users.id WHERE friends.user_id= $1',
       [user.id]
     );
     return res.status(200).json(data.rows);
