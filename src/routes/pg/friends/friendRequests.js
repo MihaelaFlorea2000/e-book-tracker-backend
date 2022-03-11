@@ -49,14 +49,14 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Unsend a friend requests
-router.delete('/:userId', authenticateToken, async (req, res) => {
-  const userId = req.params.userId;
+router.delete('/:friendId', authenticateToken, async (req, res) => {
+  const friendId = req.params.friendId;
   const user = req.user;
 
   try {
     await pool.query(
       'DELETE FROM friend_requests WHERE receiver_id = $1 AND sender_id = $2',
-      [userId, user.id]);
+      [friendId, user.id]);
 
     return normalMsg(res, 200, true, 'OK')
 
@@ -66,17 +66,20 @@ router.delete('/:userId', authenticateToken, async (req, res) => {
 });
 
 // Answer a friend requests
-router.post('/:requestId', authenticateToken, async (req, res) => {
+router.post('/:friendId', authenticateToken, async (req, res) => {
   const user = req.user;
-  const requestId = req.params.requestId;
+  const friendId = req.params.friendId;
   const { accept } = req.body;
 
   try {
-    const requestData = await pool.query(
-      "SELECT * FROM friend_requests WHERE id = $1",
-      [requestId]);
+    const checkRequest = await pool.query(
+      "SELECT * FROM friend_requests WHERE sender_id = $1 AND receiver_id = $2",
+      [friendId, user.id]);
 
-    const friendId = requestData.rows[0].sender_id;
+    if (checkRequest.data.rows === 0 ) {
+      return normalMsg(res, 400, false, 'No friend request found');
+    }
+
     let message = "";
     
     if (accept) {
@@ -95,8 +98,8 @@ router.post('/:requestId', authenticateToken, async (req, res) => {
     }
 
     await pool.query(
-      'DELETE FROM friend_requests WHERE id = $1',
-      [requestId]);
+      'DELETE FROM friend_requests WHERE sender_id = $1 AND receiver_id = $2',
+      [friendId, user.id]);
 
     return normalMsg(res, 200, true, message);
 
