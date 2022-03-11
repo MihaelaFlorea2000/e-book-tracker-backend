@@ -51,6 +51,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Unsend a friend requests
 router.delete('/:userId', authenticateToken, async (req, res) => {
   const userId = req.params.userId;
+  const user = req.user;
 
   try {
     await pool.query(
