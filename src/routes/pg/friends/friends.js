@@ -7,7 +7,7 @@ const { authenticateToken } = require('../../../middlewares');
 const requestsRouter = require('./friendRequests')
 
 // Get the friends of the current user
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
   try {
@@ -17,7 +17,7 @@ router.get('/', authenticateToken, async (req, res) => {
     );
     return res.status(200).json(data.rows);
 
-  } catch (e) {
+  } catch (err) {
     res.status(500);
     next(err)
   }
@@ -26,7 +26,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.use('/requests', requestsRouter);
 
 // Unfriend a user
-router.delete('/:friendId', authenticateToken, async (req, res) => {
+router.delete('/:friendId', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const friendId = req.params.friendId;
 
@@ -40,7 +40,7 @@ router.delete('/:friendId', authenticateToken, async (req, res) => {
     );
     return normalMsg(res, 200, true, 'OK')
 
-  } catch (e) {
+  } catch (err) {
     res.status(500);
     next(err)
   }

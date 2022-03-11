@@ -8,6 +8,8 @@ const areFriends = async (userId, friendId) => {
     [userId, friendId]
   );
 
+  console.log(data);
+
   if (data.rows.length === 0) {
     return false;
   }

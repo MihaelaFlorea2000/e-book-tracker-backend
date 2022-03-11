@@ -7,7 +7,7 @@ const { authenticateToken } = require('../../../middlewares');
 const { areFriends, haveSentRequest, haveReceivedRequest } = require('../../../helpers/friendCheck');
 
 // Get the incoming friend requests of the current user
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
 
   try {
@@ -17,14 +17,14 @@ router.get('/', authenticateToken, async (req, res) => {
     );
     return res.status(200).json(data.rows);
 
-  } catch (e) {
+  } catch (err) {
     res.status(500);
     next(err)
   }
 });
 
 // Send a friend request
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const { receiverId } = req.body;
 
@@ -43,13 +43,14 @@ router.post('/', authenticateToken, async (req, res) => {
     
     return res.status(200).json(data.rows);
 
-  } catch (e) {
-    return res.status(500).json({ status: false, message: e.message });
+  } catch (err) {
+    res.status(500);
+    next(err)
   }
 });
 
 // Unsend a friend requests
-router.delete('/:friendId', authenticateToken, async (req, res) => {
+router.delete('/:friendId', authenticateToken, async (req, res, next) => {
   const friendId = req.params.friendId;
   const user = req.user;
 
@@ -60,13 +61,14 @@ router.delete('/:friendId', authenticateToken, async (req, res) => {
 
     return normalMsg(res, 200, true, 'OK')
 
-  } catch (e) {
-    return res.status(500).json({ status: false, message: e.message });
+  } catch (err) {
+    res.status(500);
+    next(err)
   }
 });
 
 // Answer a friend requests
-router.post('/:friendId', authenticateToken, async (req, res) => {
+router.post('/:friendId', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const friendId = req.params.friendId;
   const { accept } = req.body;
@@ -76,7 +78,7 @@ router.post('/:friendId', authenticateToken, async (req, res) => {
       "SELECT * FROM friend_requests WHERE sender_id = $1 AND receiver_id = $2",
       [friendId, user.id]);
 
-    if (checkRequest.data.rows === 0 ) {
+    if (checkRequest.rows.length === 0 ) {
       return normalMsg(res, 400, false, 'No friend request found');
     }
 
@@ -103,7 +105,7 @@ router.post('/:friendId', authenticateToken, async (req, res) => {
 
     return normalMsg(res, 200, true, message);
 
-  } catch (e) {
+  } catch (err) {
     res.status(500);
     next(err)
   }
