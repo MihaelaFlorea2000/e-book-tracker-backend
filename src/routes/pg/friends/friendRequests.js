@@ -49,13 +49,13 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Unsend a friend requests
-router.delete('/:requestId', authenticateToken, async (req, res) => {
-  const requestId = req.params.requestId;
+router.delete('/:userId', authenticateToken, async (req, res) => {
+  const userId = req.params.userId;
 
   try {
     await pool.query(
-      'DELETE FROM friend_requests WHERE id = $1',
-      [requestId]);
+      'DELETE FROM friend_requests WHERE receiver_id = $1 AND sender_id = $2',
+      [userId, user.id]);
 
     return normalMsg(res, 200, true, 'OK')
 
