@@ -15,9 +15,22 @@ const areFriends = async (userId, friendId) => {
   return true
 }
 
-const haveRequest = async (userId, friendId) => {
+const haveSentRequest = async (userId, friendId) => {
   const data = await pool.query(
-    'SELECT * FROM friend_requests WHERE (sender_id = $1 AND receiver_id = $2) OR (receiver_id = $1 AND sender_id = $2)',
+    'SELECT * FROM friend_requests WHERE sender_id = $1 AND receiver_id = $2',
+    [userId, friendId]
+  );
+
+  if (data.rows.length === 0) {
+    return false;
+  }
+
+  return true
+}
+
+const haveReceivedRequest = async (userId, friendId) => {
+  const data = await pool.query(
+    'SELECT * FROM friend_requests WHERE receiver_id = $1 AND sender_id = $2',
     [userId, friendId]
   );
 
@@ -29,4 +42,4 @@ const haveRequest = async (userId, friendId) => {
 }
 
 
-module.exports = { areFriends, haveRequest }
+module.exports = { areFriends, haveSentRequest, haveReceivedRequest}

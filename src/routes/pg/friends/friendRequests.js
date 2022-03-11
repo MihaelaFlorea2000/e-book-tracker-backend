@@ -4,7 +4,7 @@ const router = require('express').Router();
 const { pool } = require('../../../config/postgresConfig');
 const { normalMsg } = require('../../../helpers/returnMsg');
 const { authenticateToken } = require('../../../middlewares');
-const { areFriends, haveRequest } = require('../../../helpers/friendCheck');
+const { areFriends, haveSentRequest, haveReceivedRequest } = require('../../../helpers/friendCheck');
 
 // Get the incoming friend requests of the current user
 router.get('/', authenticateToken, async (req, res) => {
@@ -30,9 +30,10 @@ router.post('/', authenticateToken, async (req, res) => {
 
   try {
     const friends = await areFriends(user.id, receiverId);
-    const request = await haveRequest(user.id, receiverId);
+    const sentRequest = await haveSentRequest(user.id, receiverId);
+    const receivedRequest = await haveReceivedRequest(user.id, receiverId);
 
-    if (friends || request) {
+    if (friends || sentRequest || receivedRequest) {
       return normalMsg(res, 400, false, 'Already friends')
     }
 

@@ -10,6 +10,7 @@ const { authenticateToken } = require('../../../middlewares');
 
 const profileRouter = require('./profile/profile');
 const settingsRouter = require('./settings/settings');
+const { areFriends, haveSentRequest, haveReceivedRequest } = require('../../../helpers/friendCheck');
 
 // Register a new user
 router.post('/register', async (req, res, next) => {
@@ -141,13 +142,25 @@ router.use('/settings', settingsRouter);
 // Get information about the current user
 router.get('/:userId', authenticateToken, async (req, res, next) => {
   const userId = req.params.userId;
+  const user = req.user;
 
   try {
+
+    const friends = await areFriends(user.id, userId);
+    const sentRequest = await haveSentRequest(user.id, userId);
+    const receivedRequest = await haveReceivedRequest(user.id, userId);
+
     const data = await pool.query(
       'SELECT id, first_name AS "firstName", last_name AS "lastName", email, profile_image AS "profileImage" FROM users WHERE users.id = $1',
       [userId]
     );
-    return res.status(200).json(data.rows[0]);
+
+    const userData = data.rows[0];
+    userData.isFriend = friends;
+    userData.sentRequest = sentRequest;
+    userData.receivedRequest = receivedRequest;
+
+    return res.status(200).json(userData);
   } catch (err) {
     res.status(500);
     next(err);
