@@ -21,6 +21,21 @@ router.get('/', authenticateToken, async (req, res, next) => {
 });
 
 // Get information about the current user
+router.delete('/delete', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  try {
+    await pool.query(
+      'DELETE FROM users WHERE id = $1',
+      [user.id]
+    );
+    return normalMsg(res, 200, true, 'OK');
+  } catch (err) {
+    res.status(500);
+    next(err);
+  }
+});
+
+// Get information about the current user
 router.put('/appearance', authenticateToken, async (req, res, next) => {
   const user = req.user;
   const { darkTheme, fontSize, readerTheme } = req.body
