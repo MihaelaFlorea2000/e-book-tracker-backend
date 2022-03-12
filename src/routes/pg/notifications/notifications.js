@@ -10,7 +10,7 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
   try {
     const notificationData = await pool.query(
-      '(SELECT sender_id AS "senderId", receiver_id AS "receiverId", date, type FROM friend_requests WHERE receiver_id = $1) UNION (SELECT badge_id AS "senderId", receiver_id AS "receiverId", date, type FROM badge_notifications WHERE receiver_id = $1) ORDER BY date DESC',
+      '(SELECT sender_id AS "senderId", receiver_id AS "receiverId", date, type, profile_image AS image, first_name AS "firstName", last_name AS "lastName" FROM friend_requests INNER JOIN users ON friend_requests.sender_id = users.id WHERE receiver_id = $1) UNION (SELECT badge_id AS "senderId", receiver_id AS "receiverId", date, type, null AS image, null AS "firstName", null AS "lastName" FROM badge_notifications WHERE receiver_id = $1) ORDER BY date DESC',
       [user.id]
     );
 
