@@ -131,6 +131,90 @@ router.post('/opened', authenticateToken, async (req, res, next) => {
       [bookId]
     );
 
+    // Check reading streak
+    const readToday = await pool.query(
+      'SELECT * FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND DATE(sessions.start_date) = CURRENT_DATE;',
+      [user.id]
+    );
+
+    // Is the user reading for the first time today?
+    if (readToday.rows.length === 0) {
+      // Had the user read yesterday?
+      const readYesterday = await pool.query(
+        "SELECT * FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND DATE(sessions.start_date) = (CURRENT_DATE - INTERVAL '1 day') LIMIT 1;",
+        [user.id]
+      );
+
+      let currentStreak;
+
+      if (readYesterday.rows.length > 0) {
+        // Yes => increment reading streak
+        const streakData = await pool.query(
+          'UPDATE users SET current_streak = current_streak + 1 WHERE id = $1  RETURNING current_streak AS "currentStreak"',
+          [user.id]
+        );
+
+        currentStreak = streakData.rows[0].currentStreak;
+
+      } else {
+        // No => reset reading streak
+        await pool.query(
+          "UPDATE users SET current_streak = 1 WHERE id = $1",
+          [user.id]
+        );
+
+        currentStreak = 1;
+      }
+
+      const longestStreakData = await pool.query(
+        'SELECT longest_streak AS "longestStreak" FROM users WHERE id = $1',
+        [user.id]
+      );
+
+      let longestStreak = longestStreakData.rows[0].longestStreak
+
+      if (currentStreak > longestStreak) {
+        await pool.query(
+          'UPDATE users SET longest_streak = $1 WHERE id = $2 ',
+          [currentStreak, user.id]
+        );
+
+        longestStreak = currentStreak
+      }
+
+      // Check if we got read badge
+      // Biggest read badge we have so far
+      const badges = await pool.query(
+        "SELECT MAX(badges.number)::INTEGER AS max FROM badge_notifications INNER JOIN badges ON badge_notifications.badge_id = badges.id WHERE badge_notifications.receiver_id = $1 AND badges.type='days';",
+        [user.id]
+      );
+
+      const maxBadge = badges.rows[0].max ? badges.rows[0].max : 0
+
+      if (longestStreak === 7 && maxBadge === 0) {
+        // First highlight badge
+        await pool.query(
+          "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (3, $1, CURRENT_TIMESTAMP)",
+          [user.id]
+        );
+
+      } else if (longestStreak === 30 && maxBadge === 7) {
+        // Second highlight badge
+        await pool.query(
+          "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (6, $1, CURRENT_TIMESTAMP)",
+          [user.id]
+        );
+
+      } else if (longestStreak === 100 && maxBadge === 30) {
+        // Second highlight badge
+        await pool.query(
+          "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (9, $1, CURRENT_TIMESTAMP)",
+          [user.id]
+        );
+      }
+    
+    }
+
     // Create new session
     await pool.query(
       'INSERT INTO sessions (read_id, start_date) VALUES ($1, current_timestamp)',
@@ -203,7 +287,7 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
       return res.status(401).json({ status: false, message: "Unauthorised" });
     }
 
-    const currentRead = book.rows[0].currentRead
+    const currentRead = book.rows[0].currentRead;
 
     // Book is not currently being read anymore
     await pool.query(
@@ -213,9 +297,48 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
 
     // Update read
     await pool.query(
-      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2b WHERE id = $3',
+      'UPDATE reads SET end_date = current_timestamp, rating = $1, notes = $2 WHERE id = $3',
       [rating, notes, currentRead]
     )
+
+    // Check if we got book badge
+    // Total books read
+    const booksReadData = await pool.query(
+      'SELECT COUNT(DISTINCT id)::INTEGER AS count FROM books WHERE user_id = $1 AND read = true',
+      [user.id]
+    )
+
+    const booksRead = booksReadData.rows[0].count;
+
+    // Biggest book badge we have so far
+    const badges = await pool.query(
+      "SELECT MAX(badges.number)::INTEGER AS max FROM badge_notifications INNER JOIN badges ON badge_notifications.badge_id = badges.id WHERE badge_notifications.receiver_id = $1 AND badges.type='books';",
+      [user.id]
+    );
+
+    const maxBadge = badges.rows[0].max ? badges.rows[0].max : 0;
+
+    if (booksRead === 10 && maxBadge === 0) {
+      // First book badge
+      await pool.query(
+        "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (1, $1, CURRENT_TIMESTAMP)",
+        [user.id]
+      );
+ 
+    } else if (booksRead === 50 && maxBadge === 10) {
+      // Second book badge
+      await pool.query(
+        "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (4, $1, CURRENT_TIMESTAMP)",
+        [user.id]
+      );
+
+    } else if (booksRead === 100 && maxBadge === 50) {
+      // Second book badge
+      await pool.query(
+        "INSERT INTO badge_notifications (badge_id, receiver_id, date) values (7, $1, CURRENT_TIMESTAMP)",
+        [user.id]
+      );
+    }
 
     return normalMsg(res, 200, true, "OK");
   } catch (err) {
