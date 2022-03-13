@@ -25,6 +25,24 @@ router.get('/', authenticateToken, async (req, res, next) => {
 
 router.use('/requests', requestsRouter);
 
+// Get the friends of the current user
+router.get('/mutual/:userId', authenticateToken, async (req, res, next) => {
+  const user = req.user;
+  const userId = req.params.userId
+
+  try {
+    const data = await pool.query(
+      'SELECT id, first_name AS "firstName", last_name AS "lastName", profile_image AS "profileImage" FROM ((SELECT friend_id FROM friends WHERE user_id = $1) INTERSECT (SELECT friend_id FROM friends WHERE user_id = $2)) AS mutual INNER JOIN users ON friend_id = users.id;',
+      [user.id, userId]
+    );
+    return res.status(200).json(data.rows);
+
+  } catch (err) {
+    res.status(500);
+    next(err)
+  }
+});
+
 // Unfriend a user
 router.delete('/:friendId', authenticateToken, async (req, res, next) => {
   const user = req.user;
@@ -45,5 +63,6 @@ router.delete('/:friendId', authenticateToken, async (req, res, next) => {
     next(err)
   }
 });
+
 
 module.exports = router;
