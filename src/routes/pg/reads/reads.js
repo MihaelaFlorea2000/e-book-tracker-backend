@@ -59,6 +59,12 @@ router.post('/', authenticateToken, async (req, res, next) => {
         notes
       ]
     );
+
+    await pool.query(
+      'UPDATE books SET read = false WHERE id = $1',
+      [bookId]
+    );
+
     return res.status(200).json(data.rows[0]);
   } catch (err) {
     res.status(500);
