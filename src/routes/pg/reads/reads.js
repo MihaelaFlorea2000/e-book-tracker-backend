@@ -61,7 +61,7 @@ router.post('/', authenticateToken, async (req, res, next) => {
     );
 
     await pool.query(
-      'UPDATE books SET read = false WHERE id = $1',
+      'UPDATE books SET read = true WHERE id = $1',
       [bookId]
     );
 
