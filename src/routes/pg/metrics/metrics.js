@@ -437,12 +437,7 @@ router.get('/total', authenticateToken, async (req, res, next) => {
     )
 
     // Fill blank months with 0
-    const years = getYears(total.rows[0].label);
     const yearsMap = new Map();
-
-    years.forEach((day) => {
-      yearsMap.set(day, 0);
-    })
 
     total.rows.forEach((row) => {
       yearsMap.set(row.label, row.totalTime)
