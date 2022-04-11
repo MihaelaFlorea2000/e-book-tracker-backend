@@ -1,6 +1,8 @@
 const { bucket } = require('../config/multerConfig');
 const { format } = require('util');
 
+// Upload book file to Google Bucket
+// If upload successful return file URL
 const uploadBookImage = (file, userId, bookId) => new Promise((resolve, reject) => {
   const { originalname, buffer } = file
 
@@ -21,6 +23,8 @@ const uploadBookImage = (file, userId, bookId) => new Promise((resolve, reject) 
   .end(buffer)
 })
 
+// Upload profile image to Google Bucket
+// If upload successful return file URL
 const uploadProfileImage = (profileImage, userId) => new Promise((resolve, reject) => {
   const { originalname, buffer } = profileImage
 

@@ -1,5 +1,6 @@
-// Inspired by https://stackoverflow.com/questions/4413590/javascript-get-array-of-dates-between-2-dates
-
+/**
+ * Inspired by https://stackoverflow.com/questions/4413590/javascript-get-array-of-dates-between-2-dates
+*/
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -23,8 +24,6 @@ const formatDate = (date) => {
   date = new Date(date.getTime() - (offset * 60 * 1000));
 
   return date.toISOString().split('T')[0];
-
-  //return new Date(date).toLocaleDateString('en-US');
 }
 
 // Return array of the past 30 days
@@ -59,4 +58,8 @@ const getYears = (startYear) => {
 }
 
 
-module.exports = { getDaysInMonth, formatDate, getYears }
+module.exports = { 
+  getDaysInMonth, 
+  formatDate, 
+  getYears 
+}
