@@ -7,7 +7,6 @@ const { PROFILE_IMAGE } = require('../../helpers/constants');
 const { normalMsg, loginMsg } = require('../../helpers/returnMsg');
 const jwt = require('jsonwebtoken');
 const { authenticateToken } = require('../../middlewares');
-
 const profileRouter = require('./profile/profile');
 const settingsRouter = require('./settings/settings');
 const { areFriends, haveSentRequest, haveReceivedRequest } = 
@@ -15,12 +14,13 @@ require('../../helpers/friendCheck');
 
 // Register a new user
 router.post('/register', async (req, res, next) => {
-  const { email, password, confirmPassword, firstName, lastName } = req.body;
-
-  // // Check request body is ok
-  // if (!email || !password || !confirmPassword || !firstName || !lastName) {
-  //   return normalMsg(res, 400, false, "Bad Request");
-  // }
+  const { 
+    email, 
+    password, 
+    confirmPassword, 
+    firstName, 
+    lastName 
+  } = req.body;
 
   // Check passwords match
   if (password !== confirmPassword) {

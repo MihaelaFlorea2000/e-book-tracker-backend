@@ -4,7 +4,10 @@ const router = require('express').Router({mergeParams: true});
 const { pool } = require('../../config/postgresConfig');
 const { normalMsg } = require('../../helpers/returnMsg');
 const { authenticateToken } = require('../../middlewares');
-const { uploadBookMulter, deleteBook } = require('../../config/multerConfig');
+const { 
+  uploadBookMulter, 
+  deleteBook 
+} = require('../../config/multerConfig');
 const { uploadBookImage } = require('../../helpers/uploadImage');
 const { round } = require('../../helpers/round');
 const { START_LOCATION } = require('../../helpers/constants');
@@ -351,7 +354,17 @@ router.post('/finished', authenticateToken, async (req, res, next) => {
 router.put('/edit', authenticateToken, async (req, res, next) => {
   const bookId = req.params.bookId;
   const user = req.user;
-  const { title, authors, description, tags, publisher, pubDate, language, rating, series } = req.body;
+  const { 
+    title, 
+    authors, 
+    description, 
+    tags, 
+    publisher, 
+    pubDate, 
+    language, 
+    rating, 
+    series 
+  } = req.body;
 
   try {
     const data = await pool.query(

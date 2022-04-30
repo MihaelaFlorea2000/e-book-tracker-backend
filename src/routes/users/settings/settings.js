@@ -56,7 +56,13 @@ router.put('/appearance', authenticateToken, async (req, res, next) => {
 // Edit privacy settings
 router.put('/privacy', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { notifications, profileVisibility, showGoals, showBooks, showNumbers} = req.body
+  const { 
+    notifications, 
+    profileVisibility, 
+    showGoals, 
+    showBooks, 
+    showNumbers
+  } = req.body
 
   try {
     await pool.query(

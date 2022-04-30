@@ -4,7 +4,10 @@ const router = require('express').Router();
 const { pool } = require('../../config/postgresConfig');
 const { authenticateToken } = require('../../middlewares');
 const { round } = require('../../helpers/round');
-const { getDaysInMonth, formatDate } = require('../../helpers/formatDates');
+const { 
+  getDaysInMonth, 
+  formatDate 
+} = require('../../helpers/formatDates');
 
 // Get the number metrics for the current user
 router.get('/numbers', authenticateToken, async (req, res, next) => {

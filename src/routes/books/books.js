@@ -46,7 +46,18 @@ router.get('/', authenticateToken, async (req, res, next) => {
 // Add a new book
 router.post('/', authenticateToken, async (req, res, next) => {
   const user = req.user;
-  const { title, authors, description, tags, publisher, pubDate, language, rating, fileName, series } = req.body;
+  const { 
+    title, 
+    authors, 
+    description, 
+    tags, 
+    publisher, 
+    pubDate, 
+    language, 
+    rating, 
+    fileName, 
+    series 
+  } = req.body;
 
   try {
     const data = await pool.query(

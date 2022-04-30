@@ -1,7 +1,10 @@
 require('dotenv').config();
 const request = require('supertest');
 const app = require("../src/app");
-const { registerUser, editGoals } = require("../src/helpers/testExamples");
+const { 
+  registerUser, 
+  editGoals 
+} = require("../src/helpers/testExamples");
 
 let userId = 11
 let token

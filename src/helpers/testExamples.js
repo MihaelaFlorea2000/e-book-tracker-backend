@@ -14,29 +14,29 @@ const editProfile = {
 }
 
 const uploadBook = {
-  title: "Lady Midnight", 
-  authors: ["Cassandra Clare"], 
+  title: "Book Title", 
+  authors: ["Book author"], 
   description: "Lorem ipsum", 
-  tags: ["YA", "Urban Fantasy"], 
-  publisher: "Simon and Schuster", 
+  tags: ["SF", "Fantasy"], 
+  publisher: "Publisher Name", 
   pubDate: "01/01/2016",
   language: "en",
   rating: 5,
-  fileName: "lm.epub",
-  series: "The Dark Artifices"
+  fileName: "book.epub",
+  series: "Series Name"
 }
 
 const editBook = {
-  title: "Lord of Shadows",
-  authors: ["Cassandra Clare"],
+  title: "New Book Title",
+  authors: ["Book author"],
   description: "Lorem ipsum",
-  tags: ["YA", "Urban Fantasy"],
-  publisher: "Simon and Schuster",
+  tags: ["SF", "Fantasy"],
+  publisher: "Publisher Name",
   pubDate: "01/01/2016",
   language: "en",
   rating: 5,
-  fileName: "lm.epub",
-  series: "The Dark Artifices"
+  fileName: "book.epub",
+  series: "Series Name"
 }
 
 const addHighlight = {

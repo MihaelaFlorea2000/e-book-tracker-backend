@@ -1,7 +1,10 @@
 require('dotenv').config();
 const request = require('supertest');
 const app = require("../src/app");
-const { addSession, editSession } = require("../src/helpers/testExamples");
+const { 
+  addSession, 
+  editSession 
+} = require("../src/helpers/testExamples");
 
 let readId = 30;
 let sessionId

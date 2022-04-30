@@ -14,7 +14,8 @@ const sessionsRouter = require('./routes/sessions/sessions');
 const metricsRouter = require('./routes/metrics/metrics');
 const searchRouter = require('./routes/search/search');
 const friendsRouter = require('./routes/friends/friends');
-const notificationsRouter = require('./routes/notifications/notifications');
+const notificationsRouter = 
+require('./routes/notifications/notifications');
 const badgesRouter = require('./routes/badges/badges');
 
 // Create app

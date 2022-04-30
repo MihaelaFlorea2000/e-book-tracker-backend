@@ -24,27 +24,6 @@ expect.extend({
         message: () => `expected null or instance of ${this.utils.printExpected(expected)}, but received ${this.utils.printReceived(received)}`
       };
     }
-
-    if (expected == Function) {
-      return {
-        pass: typeof received == 'function' || received instanceof Function,
-        message: () => `expected null or instance of ${this.utils.printExpected(expected)}, but received ${this.utils.printReceived(received)}`
-      };
-    }
-
-    if (expected == Object) {
-      return {
-        pass: received !== null && typeof received == 'object',
-        message: () => `expected null or instance of ${this.utils.printExpected(expected)}, but received ${this.utils.printReceived(received)}`
-      };
-    }
-
-    if (expected == Boolean) {
-      return {
-        pass: typeof received == 'boolean',
-        message: () => `expected null or instance of ${this.utils.printExpected(expected)}, but received ${this.utils.printReceived(received)}`
-      };
-    }
     
     return {
       pass: received instanceof expected,

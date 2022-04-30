@@ -46,7 +46,6 @@ const haveReceivedRequest = async (userId, friendId) => {
   return true
 }
 
-
 module.exports = { 
   areFriends, 
   haveSentRequest, 
