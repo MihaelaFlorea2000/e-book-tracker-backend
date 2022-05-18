@@ -339,7 +339,7 @@ router.get('/weekly', authenticateToken, async (req, res, next) => {
 
     // Get user goals
     const pastWeek = await pool.query(
-      "SELECT TO_CHAR(DATE(sessions.start_date), 'Dy') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '7' day GROUP BY \"label\" ORDER BY \"label\" ASC;",
+      "SELECT TO_CHAR(DATE(sessions.start_date), 'Dy') AS \"label\", EXTRACT(HOUR FROM SUM(sessions.time))::INTEGER AS \"totalTime\" FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND sessions.time IS NOT NULL AND DATE(sessions.start_date) > CURRENT_DATE - INTERVAL '7' day GROUP BY sessions.start_date ORDER BY sessions.start_date ASC;",
       [user.id]
     )
 
@@ -347,7 +347,15 @@ router.get('/weekly', authenticateToken, async (req, res, next) => {
     const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const weekMap = new Map();
 
-    weekDays.forEach((day) => {
+    const today = new Date();
+    const weekDaysOrdered = [];
+
+    for (let i = 0; i < 7; i++) {
+      const newDate = new Date(today.setDate(today.getDate() - 1));
+      weekDaysOrdered.unshift(weekDays[newDate.getDay()]);
+    }
+
+    weekDaysOrdered.forEach((day) => {
       weekMap.set(day, 0);
     })
 
