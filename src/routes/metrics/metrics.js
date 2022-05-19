@@ -50,7 +50,7 @@ router.get('/numbers', authenticateToken, async (req, res, next) => {
     )
 
     const bestDay = await pool.query(
-      'SELECT DATE(sessions.start_date) AS day, SUM(sessions.time) FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true GROUP BY day',
+      'SELECT DATE(sessions.start_date) AS day, SUM(sessions.time) AS sum FROM sessions INNER JOIN reads ON sessions.read_id = reads.id INNER JOIN books ON reads.book_id = books.id WHERE books.user_id = $1 AND books.read = true GROUP BY day ORDER BY sum DESC',
       [user.id]
     )
 
